@@ -41,6 +41,7 @@ public:
     void setParameters(Parameters* p) {params = p;}
 
     bool getCommand();
+    // THIS IS JOEYS SECTION
     // Read input from the serial port. If input is obtained, return true. Otherwise, return false.
 
     bool executeCommand();
