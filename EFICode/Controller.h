@@ -4,7 +4,7 @@
 //#include <queue>
 
 //////////////////////////////////////////////////////////////////////////////
-// CONTROLLER CLASS                                                         //
+// CONTROLLER                                                         //
 // ======================================================================== //
 // Facilitates real time communication between a laptop and the Arduino.    //
 // Should be able to take input from the serial port and efficiently        //
@@ -16,52 +16,28 @@
 // fuelRatio                                                                //
 // desiredRPM                                                               //
 // desired02                                                                //
+// startupVal                                                               //
 // an array of doubles corresponding to our fuel adjustment table           //
 //////////////////////////////////////////////////////////////////////////////
 
 /*Syntax:
+  4 characters for identifier, 1 character for space, 4 characters for value
   idle ____
   fuel ____
   dRPM ____
   deO2 ____
   ar19 ____
+  strt ____
 */
 
-const int MAX_QUEUE_SIZE = 100;
+bool getCommand(); //Check if there is a command in serial, if so, grab it and figure out what function to calculated
 
-// CommandType can be changed if necessary
-typedef String CommandType;
-
-class Parameters;
-
-class Controller {
-public:
-    Controller() {}
-
-    void setParameters(Parameters* p) {params = p;}
-
-    bool getCommand();
-    // Read input from the serial port. If input is obtained, return true. Otherwise, return false.
-
-    bool executeCommand();
-    // Tell the controller to execute the command at the front of the command queue.
-    // We will take index 0 as the front of the command queue (Assuming an array structure).
-    // *If it is successfully executed, return true and eliminate that command from the queue.
-    // *Otherwise, return false and put the failed command at the back of the queue.
-    // **REMEMBER**: our system needs to be robust. Even if a command fails the system needs to
-    // keep chugging on.
-
-// Feel free to change up the private members as needed in order to maximize efficiency.
-// Some possible ones are listed here in order to make the desired functionality clear.
-private:
-    //.....................
-    bool set_idleVal();
-    bool set_fuelRatio();
-    //.....................etc...
-
-    //Queue<CommandType> queue;
-
-    Parameters* params;
-};
+//These functions modify the appropriate parameters
+bool setIdleVal(double val);
+bool setFuelRatio(double val);
+bool setDesiredRPM(int dRPM);
+bool setDesiredO2(int dO2);
+bool setFuelRatioTable(int index, double ratio); //Set the fuel ratio at the appropriate index in the fuel ratio table
+bool setStartupValue(double val);
 
 #endif // CONTROLLER_H*/
