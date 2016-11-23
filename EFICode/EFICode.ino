@@ -35,7 +35,7 @@ void serialOutput() {
   Serial.print(", ");
   Serial.print(pulseTimeReal);
   Serial.print(", ");
-  Serial.print(revolutions2);
+  Serial.print(totalRevolutions);
   Serial.print(", ");
   Serial.print(startupVal);
   Serial.print(", ");
@@ -45,23 +45,25 @@ void serialOutput() {
 void countRevolution () {
   //  Serial.println("Revolution counted");
   revolutions++;
-  revolutions2++;
-  if (revolutions2 % 2 == 1 || revolutions2 < 25) {
+  totalRevolutions++;
+  if (totalRevolutions % 2 == 1 || totalRevolutions < 25) {
     //&& RPM > desiredRPM)
+    //Inject on every second revolution because this is a 4 stroke engine
     digitalWrite(INJ_Pin, HIGH);
-    lastTime2 = millis();
+    lastRPMCalcTime = millis();
     delayCount = 0;
     Timer3.setPeriod(pulseTime);
     Timer3.restart();
   }
 }
 
-void pulseOff() { //When it's time to turn the injector off, follow these steps and turn it off
+void pulseOff() {
+  //When it's time to turn the injector off, follow these steps and turn it off
   //ISR for Timer3 interrupt
   if (delayCount == 1) {
     //Determined experimentally.  I think the Timer interrupts in the very beginning.  To avoid this first interrupt, I switched to 1.  Can probably be revised and improved
     digitalWrite(INJ_Pin, LOW);
-    pulseTimeReal= (millis() - lastTime2);
+    pulseTimeReal= (millis() - lastRPMCalcTime);
     arrayIndex = RPM / rpmIncrement;
     totalPulse[arrayIndex] += pulseTimeReal;
     //totalPulse[arrayIndex] += pulseTime / 1000;
@@ -81,31 +83,22 @@ void inject() {
   // mult n by mm of air, divide by 14.7
   TPSx = 1 + TPS_MOD*(getTPS() - lastTPS);
   lastTPS = getTPS();
-  if (revolutions2 > 2 && lastTPS <= maxIdleTPS) { //RPM and RPS-based feedback loop
+  if (totalRevolutions > 2 && lastTPS <= maxIdleTPS) {
+    //RPM-based feedback loop
     if (RPM > desiredRPM) {
       idleVal = idleVal - .00001;
     }
     else if (RPM < desiredRPM) {
       idleVal = idleVal + .00001;
     }
-  //
-  //    O2V = getOIN();
-  //    if (O2V > desiredO2)
-  //    {
-  //      idleVal = idleVal - .000002;
-  //    }
-  //    else if (O2V < desiredO2)
-  //    {
-  //      idleVal = idleVal + .000002;
-  //    }
   }
-  //double val = getMAP() * injectionConstant / (getTemp(IAT_Pin) * fuelRatioTable[RPM / rpmIncrement] * injectorFuelRate);
   double val = getMAP() * injectionConstant / (getTemp(IAT_Pin) * fuelRatio * injectorFuelRate);
+  //Calculate pulse time
   if (lastTPS <= maxIdleTPS) {
-    pulseTime =(val * 1000000 * idleVal * startupVal * TPSx) + openTime;
+    pulseTime = (val * 1000000 * idleVal * startupVal * TPSx) + openTime;
   }
   else {
-    pulseTime =(val * 1000000 * startupVal * TPSx) + openTime;
+    pulseTime = (val * 1000000 * startupVal * TPSx) + openTime;
   }
 }
 
@@ -120,7 +113,7 @@ void setup() {
   Timer3.attachInterrupt(pulseOff, pulseTime); //Attaches timer-based interrupt to stop injector from injecting
   delayCount = 4;
   pulseTimeReal = 0;
-  lastTime2 = millis();
+  lastRPMCalcTime = millis();
   lastInterrupt = millis();
   for (int i = 0; i <= 31; i++) {
     totalPulse[i] = 0; //Initial fuel usage in each RPM range - the ranges are shown in parameters.h
@@ -134,7 +127,8 @@ int determineDesiredRPM(const int& minRPM,const int& maxRPM) {
 }
 
 void loop() {
-  if (Serial.available()) { //If serial output is not being used by anything else
+  if (Serial.available()) {
+    //If serial output is not being used by anything else
     sumPulse = 0;
     int pulseUnder3000 = 0;
     for (int i = 0; i <= 31; i++) {
@@ -151,7 +145,8 @@ void loop() {
     Serial.println("Under 3000: " + String(pulseUnder3000));
     Serial.end();
   }
-  if (RPM > endRPM) { //If the engine is shut down, print out the following analytics
+  if (RPM > endRPM) {
+    //If the engine goes above our max RPM, shut it off and print out the following analytics
     fuelRatio = 0;
     openTime = 0;
     sumPulse = 0;
@@ -170,23 +165,23 @@ void loop() {
     Serial.println("Under 3000: " + String(pulseUnder3000));
     Serial.end();
   }
-  if (revolutions >= 25) { //Get RPM each cycle
-    RPM = getRPM(micros() - lastTimeRPM, revolutions);
+  if (revolutions >= 25) {
+    //Calculate RPM each cycle
+    RPM = getRPM(micros() - lastRPMCalculationTime, revolutions);
     startupVal = 1;
     revolutions = 0;
-    lastTimeRPM = micros();
+    lastRPMCalculationTime = micros();
     //AFRFeedbackLoop( determineDesiredRPM(minDRPM, maxDRPM), RPM );  //Update fuel ratio when new RPM is calculated
   }
   inject(); //Calculate injection time on each loop cycle
-  //Timer3.setPeriod(pulseTime);
-  if (millis()-lastTimeRPM >= 2000) {
-    //If RPM falls below 600, sets RPM to 0.
+  if (millis()-lastRPMCalculationTime >= 2000) {
+    //If RPM falls below 600, sets RPM to 0 meaning shut the engine off
     RPM = 0;
     startupVal = resetVal;
-    revolutions2 = 0;
+    totalRevolutions = 0;
   }
-  if (millis()-lastTime>=500) { //If it's been more than 500ms since we last printed data, print data
+  if (millis()-lastSerialOutputTime>=500) { //If it's been more than 500ms since we last printed data, print data
     serialOutput();
-    lastTime = millis();
+    lastSerialOutputTime = millis();
   }
 }
