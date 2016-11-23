@@ -5,15 +5,15 @@ int openTime = 350;
 
 // Revolution counters
 int revolutions = 0;
-unsigned long revolutions2 = 0;
+unsigned long totalRevolutions = 0;
 
 // RPM counters
-unsigned long lastTimeRPM = 0;
+unsigned long lastRPMCalculationTime = 0;
 int RPM = 0;
 
 // Time counters
-long lastTime = 0;
-long lastTime2;
+long lastSerialOutputTime = 0;
+long lastRPMCalcTime;
 long pulseTimeReal = 0;
 long lastInterrupt;
 int delayCount = 0;
