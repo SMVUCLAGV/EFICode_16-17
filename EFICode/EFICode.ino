@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "parameters.h"
 #include "Sensors.h"
+#include "EEPROM.h"
 //#include "serial.h"
 
 // FEEDBACK LOOP GLOBAL VARIABLES //
