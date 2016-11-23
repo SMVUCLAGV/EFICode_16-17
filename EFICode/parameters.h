@@ -19,7 +19,7 @@ long lastInterrupt;
 int delayCount = 0;
 
 // Feedback loop values
-const int desiredRPM = 2500;
+int desiredRPM = 2500;
 const double maxIdleTPS = 0.15;
 double desiredO2 = 0.5;
 double O2V = 0;
