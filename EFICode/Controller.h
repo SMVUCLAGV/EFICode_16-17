@@ -30,45 +30,41 @@
   strt ____
 */
 
-bool getCommand(); //Check if there is a command in serial, if so, grab it and figure out what function to calculated
-//This is Joey's section
+bool getCommand() { //Check if there is a command in serial, if so, grab it and figure out what function to calculated
+
 // send data only when you receive data:
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    incomingByte = Serial.readString();
 
-bool getCommand() {
-
-  // send data only when you receive data:
-    if (Serial.available() > 0) {
-      // read the incoming byte:
-      incomingByte = Serial.readString();
-
-      // figure out the command:
-      char firstLetter = incomingByte[0];
-      switch(firstLetter) {
-        case 'i':
-          setIdleVal(incomingByte.substring(5).toFloat());
+    // figure out the command:
+    char firstLetter = incomingByte[0];
+    switch(firstLetter) {
+      case 'i':
+        setIdleVal(incomingByte.substring(5).toFloat());
+        return true;
+      case 'f':
+        setFuelRatio();
+        return true;
+      case 'd':
+        if(incomingByte[1] == 'R') {
+          setDesiredRPM(incomingByte.substring(5).toFloat());
           return true;
-        case 'f':
-          setFuelRatio();
+        }
+        else {
+          setDesiredO2(incomingByte.substring(5).toFloat());
           return true;
-        case 'd':
-          if(incomingByte[1] == 'R') {
-            setDesiredRPM(incomingByte.substring(5).toFloat());
-            return true;
-          }
-          else {
-            setDesiredO2(incomingByte.substring(5).toFloat());
-            return true;
-          }
-        case 'a':
-          setFuelRatioTable(incomingByte.substring(incomingByte[2],incomingByte[4]).toInt(), incomingByte.substring(5).toFloat());
-          return true;
-        case 's':
-          setStartupValue(incomingByte.substring(5).toFloat());
-          return true;
-        default:
-          return false;
-      }
-      return false;
+        }
+      case 'a':
+        setFuelRatioTable(incomingByte.substring(incomingByte[2],incomingByte[4]).toInt(), incomingByte.substring(5).toFloat());
+        return true;
+      case 's':
+        setStartupValue(incomingByte.substring(5).toFloat());
+        return true;
+      default:
+        return false;
+    }
+    return false;
 }
 
 //These functions modify the appropriate parameters
@@ -78,6 +74,31 @@ bool setDesiredRPM(int dRPM);
 bool setDesiredO2(int dO2);
 bool setFuelRatioTable(int index, double ratio); //Set the fuel ratio at the appropriate index in the fuel ratio table
 bool setStartupValue(double val);
->>>>>>> origin/master
+
+bool setIdleVal(double val) {
+  parameters.idleVal = val;
+  return true;
+}
+
+bool setFuelRatio(double val) {
+  parameters.fuelRatio = val;
+  return true;
+}
+
+bool setDesiredRPM(int dRPM) {
+  parameters.desiredRPM = dRPM;
+}
+
+bool setDesiredO2(int dO2) {
+  parameters.desiredO2 = dO2;
+  return true;
+}
+
+// cannot finish setFuelRatioTable function until table is created
+
+bool setStartupValue(double val) {
+  parameters.startupVal = val;
+  return true;
+}
 
 #endif // CONTROLLER_H*/
