@@ -17,20 +17,20 @@ const double injectorFuelRate = 2.1333333333; //grams per second
 //Temperature Measurement
 //oldTempSlope = -19.451
 //oldTempIntercept = 89.135;
-const double tempSlope = -.0953 // = oldTempSlope * voltageConversion
-const double tempIntercept = 362.135 // = oldTempIntercept + 273
+const double tempSlope = -.0953; // = oldTempSlope * voltageConversion
+const double tempIntercept = 362.135; // = oldTempIntercept + 273
 
 //TPS Measurement
 //oldTPSConversion = 0.401738191;
 //oldTPSOffset = -.84
-const double TPSConversion = .0019685 // = oldTPSConversion * voltageConversion
-const double TPSOffset = -.33746 // = oldTPSOffset * oldtpsConversion
+const double TPSConversion = .0019685; // = oldTPSConversion * voltageConversion
+const double TPSOffset = -.33746; // = oldTPSOffset * oldtpsConversion
 
 //MAP Measurement
 //scalingFactor = 1000
 //oldMAPConversion = 18.8636364
 //oldMAPOffset = 20
-const double MAPConversion = 92.432 // = oldMAPConversion * voltageConversion * scalingFactor
-const double MAPOffset = 20000 // = oldMAPOffset * scalingFactor
+const double MAPConversion = 92.432; // = oldMAPConversion * voltageConversion * scalingFactor
+const double MAPOffset = 20000; // = oldMAPOffset * scalingFactor
 
 #endif

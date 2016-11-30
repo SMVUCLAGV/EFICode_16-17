@@ -1,3 +1,5 @@
+#include "Arduino.h"
+#include "constants.h"
 #include "Data.h"
 #include "Sensors.h"
 #include "parameters.h"

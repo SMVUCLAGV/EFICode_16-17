@@ -1,3 +1,5 @@
+#include "Arduino.h"
+
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 

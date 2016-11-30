@@ -1,6 +1,7 @@
 #include "Pulse.h"
 #include "parameters.h"
 #include "Sensors.h"
+#include "TimerThree.h"
 #include "constants.h"
 
 void countRevolution () {
