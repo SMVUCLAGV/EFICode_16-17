@@ -31,7 +31,6 @@
 */
 
 bool getCommand(); //Check if there is a command in serial, if so, grab it and figure out what function to calculated
-//This is Joey's section
 
 //These functions modify the appropriate parameters
 bool setIdleVal(double val);
@@ -40,6 +39,5 @@ bool setDesiredRPM(int dRPM);
 bool setDesiredO2(int dO2);
 bool setFuelRatioTable(int index, double ratio); //Set the fuel ratio at the appropriate index in the fuel ratio table
 bool setStartupValue(double val);
->>>>>>> origin/master
 
 #endif // CONTROLLER_H*/

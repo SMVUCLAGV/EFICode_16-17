@@ -3,33 +3,30 @@
 #include "constants.h"
 
 int getRPM (int timePassed, int rev) {
-  return (60000000*rev)/(double)timePassed;
+  return (60000000 * rev) / ((double) timePassed);
 }
 
 double getTPS() {
   //gets throttle position based off of the percentage of throttle area open
-  double angle = (throttlePositionConversion * (analogRead(TPS_Pin)*voltageConversion -.84));
+  double angle = TPSConversion * analogRead(TPS_Pin) + TPSOffset;
   return sin(angle);
 }
 
 double getTemp(int pin) {
-  return (analogRead(pin)*voltageConversion*(slope)+intercept) + 273;
-  //return analogRead(pin);
+  //Gets temperature ready by specified sensor by using calibration curve
+  return tempSlope * analogRead(pin) + tempIntercept;
 }
 
 double getMAP() {
-  // Output in Pa
-  return (18.8636364*analogRead(MAP_Pin)*voltageConversion + 20)*1000;
+  // Calculates MAP, outputs in Pa
+  return MAPConversion * analogRead(MAP_Pin) + MAPOffset;
 }
 
 double getOIN () {
-  return analogRead(OIN_Pin)*voltageConversion;
+  return voltageConversion * analogRead(OIN_Pin);
 }
 
 bool isLean (int pin) {
-  if (analogRead(OIN_Pin)*voltageConversion > 0.5) {
-    return true;
-  } else {
-    return false;
-  }
+  double val = voltageConversion * analogRead(pin);
+  return (val > 0.5);
 }

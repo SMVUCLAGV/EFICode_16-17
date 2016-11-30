@@ -53,4 +53,14 @@ double fuelRatioTable [32] =
                          14.7  ,   14.7  ,   14.7  ,   14.7,  //6000 - 6999
                          14.7  ,   14.7  ,   14.7  ,   14.7 };//7000 - 7999
 
+// FEEDBACK LOOP GLOBAL VARIABLES //
+String lastOperation = "+";
+int LastRPMGradient = 500;
+double adjustAFR= 0.0001;
+long int nAdditions = 0;
+long int nSubtractions = 0;
+const int minDRPM = 2000;
+const int maxDRPM = 2500;
+////////////////////////////////////
+
 #endif
