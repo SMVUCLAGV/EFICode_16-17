@@ -1,68 +1,57 @@
-#include "Arduino.h"
-
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-int openTime = 350;
+extern int openTime;
 
 // Revolution counters
-int revolutions = 0;
-unsigned long totalRevolutions = 0;
+extern int revolutions;
+extern unsigned long totalRevolutions;
 
 // RPM counters
-unsigned long lastRPMCalculationTime = 0;
-int RPM = 0;
+extern unsigned long lastRPMCalculationTime;
+extern int RPM;
 
 // Time counters
-long lastSerialOutputTime = 0;
-long lastRPMCalcTime;
-long pulseTimeReal = 0;
-long lastInterrupt;
-int delayCount = 0;
+extern long lastSerialOutputTime;
+extern long lastRPMCalcTime;
+extern long pulseTimeReal;
+extern long lastInterrupt;
+extern int delayCount;
 
 // Feedback loop values
-const int desiredRPM = 2500;
+extern int desiredRPM;
 const double maxIdleTPS = 0.15;
-double desiredO2 = 0.5;
-double O2V = 0;
+const double desiredO2 = 0.5;
+extern double O2V;
 
 // Pulse Width counters
-long pulseTime;
-int rpmIncrement = 250;
-int maxRPM = 7999;
-int arraySize = maxRPM / rpmIncrement + 1;
-unsigned long totalPulse[32];
-unsigned long sumPulse = 0;
-int arrayIndex = 0;
+extern long pulseTime;
+extern int rpmIncrement;
+extern int maxRPM;
+extern int arraySize;
+extern unsigned long totalPulse[32];
+extern unsigned long sumPulse;
+extern int arrayIndex;
 
 // Pulse adjustment values
-double fuelRatio = 14.7; // grams per grams
-double idleVal  = 1.5;
-double resetVal = 0.5;
-double startupVal = 0.5;
-double lastTPS;
-double TPSx;
-int endRPM = 80000;
+extern double fuelRatio; // grams per grams
+extern double idleVal;
+extern double resetVal;
+extern double startupVal;
+extern double lastTPS;
+extern double TPSx;
+extern int endRPM;
 
-double fuelRatioTable [32] =
-   //                  0000-0249 0250-0499 0500-0749 0750-0999
-                    {    14.9  ,   14.9  ,   14.9  ,   14.9,  //0000 - 0999
-                         14.9  ,   14.9  ,   14.9  ,   14.9,  //1000 - 1999
-                         14.9  ,   14.9  ,   14.9  ,   14.9,  //2000 - 2999
-                         15.4  ,   15.4  ,   15.4  ,   15.4,  //3000 - 3999
-                         15.4  ,   15.4  ,   15.4  ,   15.4,  //4000 - 4999
-                         14.7  ,   14.7  ,   14.7  ,   14.7,  //5000 - 5999
-                         14.7  ,   14.7  ,   14.7  ,   14.7,  //6000 - 6999
-                         14.7  ,   14.7  ,   14.7  ,   14.7 };//7000 - 7999
+extern double fuelRatioTable [32];//7000 - 7999
 
 // FEEDBACK LOOP GLOBAL VARIABLES //
 //String lastOperation = "+";
-int LastRPMGradient = 500;
-double adjustAFR= 0.0001;
-long int nAdditions = 0;
-long int nSubtractions = 0;
-const int minDRPM = 2000;
-const int maxDRPM = 2500;
+extern int LastRPMGradient;
+extern double adjustAFR;
+extern long int nAdditions;
+extern long int nSubtractions;
+extern const int minDRPM;
+extern const int maxDRPM;
 ////////////////////////////////////
 
 #endif

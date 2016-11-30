@@ -1,8 +1,9 @@
-#include "Pulse.h"
 #include "parameters.h"
+#include "Pulse.h"
 #include "Sensors.h"
 #include "TimerThree.h"
 #include "constants.h"
+#include "Arduino.h"
 
 void countRevolution () {
   revolutions++;
