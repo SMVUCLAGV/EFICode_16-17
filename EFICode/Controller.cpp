@@ -1,66 +1,78 @@
-#include "Controller.h"
+#include "Runner.h"
 #include "Parameters.h"
 
-bool getCommand() { //Check if there is a command in serial, if so, grab it and figure out what function to calculated
-// send data only when you receive data:
-  if (Serial.available() > 0) {
-    // read the incoming byte:
-    incomingByte = Serial.readString();
-    // figure out the command:
-    char firstLetter = incomingByte[0];
-    switch(firstLetter) {
-      case 'i':
-        setIdleVal(incomingByte.substring(5).toFloat());
-        return true;
-      case 'f':
-        setFuelRatio();
-        return true;
-      case 'd':
-        if(incomingByte[1] == 'R') {
-          setDesiredRPM(incomingByte.substring(5).toFloat());
-          return true;
-        }
-        else {
-          setDesiredO2(incomingByte.substring(5).toFloat());
-          return true;
-        }
-      case 'a':
-        setFuelRatioTable(incomingByte.substring(incomingByte[2],incomingByte[4]).toInt(), incomingByte.substring(5).toFloat());
-        return true;
-      case 's':
-        setStartupValue(incomingByte.substring(5).toFloat());
-        return true;
+bool Controller::getCommand() {
+  //Check if there is a command in serial, if so, grab it and figure out what function to call
+  if (Serial.available() >= 2) {
+    String message = Serial.readString();
+    String iden = message.substring(0,2);
+    int id = iden.toInt();
+    String val = message.substring(2);
+    switch(id) {
+      case 0:
+        //TODO: Arduino RESET
+        break;
+      case 1:
+        //TODO: Start Sending Data
+        break;
+      case 2:
+        //TODO: Stop Sending Data
+        break;
+      case 3:
+        //TODO: Synchronize Parameter Order
+        break;
+      case 4:
+        //TODO: Update Arduino AFR Table
+        break;
+      case 5:
+        //TODO: Update DAQ AFR Table
+        break;
+      case 6:
+        //TODO: Set Idle Fuel Ratio
+        break;
+      case 7:
+        //TODO: Set Current Fuel Ratio
+        break;
+      case 8:
+        //TODO: Set Reset Fuel Ratio
+        break;
+      case 9:
+        //TODO: Set desired RPM
+        break;
+      case 10:
+        //TODO: Set desired O2
+        break;
       default:
-        return false;
+        break;
     }
-    return false;
+  }
 }
 
-bool setIdleVal(double val) {
+bool Controller::setIdleVal(double val) {
   idleVal = val;
   return true;
 }
 
-bool setFuelRatio(double val) {
+bool Controller::setFuelRatio(double val) {
   fuelRatio = val;
   return true;
 }
 
-bool setDesiredRPM(int dRPM) {
+bool Controller::setDesiredRPM(int dRPM) {
   desiredRPM = dRPM;
 }
 
-bool setDesiredO2(int dO2) {
+bool Controller::setDesiredO2(int dO2) {
   desiredO2 = dO2;
   return true;
 }
 
-bool setFuelRatioTable(int index, double ratio) {
+bool Controller::setFuelRatioTable(int index, double ratio) {
   //TODO: Finish when Fuel Ratio Table is implemented
   return true;
 }
 
-bool setStartupValue(double val) {
+bool Controller::setStartupValue(double val) {
   startupVal = val;
   return true;
 }
