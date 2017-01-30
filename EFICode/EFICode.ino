@@ -1,6 +1,7 @@
 #include "TimerThree.h"
 #include "Constants.h"
 #include "Runner.h"
+#include "EEPROM.h"
 
 Controller *c;
 void countRev();
