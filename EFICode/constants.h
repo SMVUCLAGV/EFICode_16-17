@@ -18,6 +18,7 @@ const double desiredO2 = 0.5;
 const int endRPM = 80000;
 
 const int RPMIncrement = 250;
-const int openTime = 350;
+
+const int maxRPM = 7999;
 
 #endif

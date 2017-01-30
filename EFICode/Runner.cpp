@@ -2,6 +2,7 @@
 
 #include "Arduino.h"
 #include "Constants.h"
+#include "TimerThree.h"
 
 Controller::Controller() {
   pinMode(INJ_Pin, OUTPUT); //Sets injector pin to output mode
@@ -27,7 +28,8 @@ void Controller::initializeParameters() {
   desiredOIN = 0;
 
   delayCount = 4;
-
+  totalPulseTime = 0;
+  openTime = 350;
 
   fuelRatio = 14.7;
   idleVal = 1.5;
@@ -36,8 +38,6 @@ void Controller::initializeParameters() {
   for (int x = 0; x < 32; x++) {
     totalPulse[x] = 0; //Initial fuel usage in each RPM range - the ranges are shown in parameters.h
   }
-
-  printOrder = {0,1,2,3,4,5,6};
 }
 
 void Controller::countRevolution() {
@@ -49,7 +49,7 @@ void Controller::countRevolution() {
     digitalWrite(INJ_Pin, HIGH);
     lastRPMCalcTime = millis();
     delayCount = 0;
-    Timer3.setPeriod(pulseTime);
+    Timer3.setPeriod(injectorPulseTime);
     Timer3.restart();
   }
 }
@@ -60,7 +60,7 @@ void Controller::calculatePulseTime() {
   // T = IAT
   // P = MAP
   // mult n by mm of air, divide by 14.7
-  double TPSx = 1 + getTifPS() - TPS;
+  double TPSx = 1 + getTPS() - TPS;
   TPS = getTPS();
   if (totalRevolutions > 2 && TPS <= maxIdleTPS) {
     //RPM-based feedback loop
@@ -74,9 +74,10 @@ void Controller::calculatePulseTime() {
   double val = getMAP() * injectionConstant / (getTemp(IAT_Pin) * fuelRatio * injectorFuelRate);
   //Calculate pulse time
   long pulseTime = 1000000 * val * startupVal * TPSx;
-  if (lastTPS <= maxIdleTPS) {
+  if (TPS <= maxIdleTPS) {
     pulseTime *= idleVal;
   }
+  totalPulseTime += pulseTime;
   pulseTime += openTime;
   injectorPulseTime = pulseTime;
 }

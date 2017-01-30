@@ -4,7 +4,7 @@
 struct Controller {
     Controller();
     bool readSensors();
-    void printCurrentData();
+    void sendCurrentData();
     void printEndingData();
     bool getCommand();
     void countRevolution();
@@ -44,6 +44,7 @@ struct Controller {
     double resetVal;
     double startupVal;
     unsigned long totalPulse[32];
+    long totalPulseTime;
 
     double fuelRatioTable [32] =
    //                  0000-0249 0250-0499 0500-0749 0750-0999
@@ -61,9 +62,9 @@ struct Controller {
     long realPulseTime;
     int delayCount;
 
-    extern long lastSerialOutputTime;
-
-    int printOrder [7];
+    long lastSerialOutputTime;
+    long lastInterrupt;
+    int openTime;
 };
 
 #endif

@@ -1,5 +1,5 @@
 #include "Runner.h"
-#include "Parameters.h"
+#include "Arduino.h"
 
 bool Controller::getCommand() {
   //Check if there is a command in serial, if so, grab it and figure out what function to call
@@ -63,7 +63,7 @@ bool Controller::setDesiredRPM(int dRPM) {
 }
 
 bool Controller::setDesiredO2(int dO2) {
-  desiredO2 = dO2;
+  desiredOIN = dO2;
   return true;
 }
 
