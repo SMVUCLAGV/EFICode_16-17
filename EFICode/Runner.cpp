@@ -6,7 +6,7 @@
 
 Controller::Controller() {
   pinMode(INJ_Pin, OUTPUT); //Sets injector pin to output mode
-  Serial.begin(9600); //Initializes Serial output
+  Serial.begin(57600); //Initializes Serial output
   Serial.println("Time, ECT,    IAT,    MAP,     TPS,  OIN,  RPM,  DesPW,PWRe,Revs,Start,AFR"); //Prints headers for our data
   initializeParameters();
   readSensors();
