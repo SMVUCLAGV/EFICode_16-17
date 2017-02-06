@@ -22,9 +22,10 @@ struct Controller {
     bool setIdleVal(double val);
     bool setFuelRatio(double val);
     bool setDesiredRPM(int dRPM);
-    bool setDesiredO2(int dO2);
+    bool setDesiredO2(double dO2);
     bool setFuelRatioTable(int index, double ratio); //Set the fuel ratio at the appropriate index in the fuel ratio table
     bool setStartupValue(double val);
+    bool setResetRatio(double val);
 
     int RPM;
     double TPS;
