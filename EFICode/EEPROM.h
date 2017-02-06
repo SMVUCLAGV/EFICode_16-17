@@ -1,4 +1,4 @@
-#ifndef EEPROM_H
+/*#ifndef EEPROM_H
 #define EEPROM_H
 #include "Wire.h"
 

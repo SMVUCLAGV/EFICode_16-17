@@ -1,5 +1,5 @@
-#ifndef RUNNER_H
-#define RUNNER_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
 struct Controller {
     Controller();
@@ -65,6 +65,8 @@ struct Controller {
     long lastSerialOutputTime;
     long lastInterrupt;
     int openTime;
+
+    bool currentlySendingData;
 };
 
 #endif

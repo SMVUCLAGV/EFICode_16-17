@@ -1,7 +1,8 @@
-#include "TimerThree.h"
+#include "Controller.h"
+
 #include "Constants.h"
-#include "Runner.h"
-#include "EEPROM.h"
+#include "TimerThree.h"
+//#include "EEPROM.h"
 
 Controller *c;
 void countRev();
@@ -45,10 +46,12 @@ void loop() {
     c->startupVal = c->resetVal;
     c->totalRevolutions = 0;
   }
-  if (micros()-c->lastSerialOutputTime>=500000) {
-    //If it's been more than 500ms since we last printed data, print data
-    c->sendCurrentData();
-    c->lastSerialOutputTime = micros();
+  if (c->currentlySendingData) {
+    if (micros()-c->lastSerialOutputTime>=500000) {
+      //If it's been more than 500ms since we last printed data, print data
+      c->sendCurrentData();
+      c->lastSerialOutputTime = micros();
+    }
   }
 }
 
