@@ -9,8 +9,8 @@ bool Controller::getCommand() {
     double val_d = 0;
     long val_i = 0;
     switch(id) {
-      case 0:
-        //TODO: Arduino RESET
+      case 0: //Arduino Reset
+        //TODO: This
         //digitalWrite(RST_PIN, HIGH);
         break;
       case 1: //Start Sending Data
@@ -19,8 +19,8 @@ bool Controller::getCommand() {
       case 2: //Stop Sending Data
         currentlySendingData = false;
         break;
-      case 3:
-        //TODO: Synchronize Parameter Order
+      case 3: //Synchronize Parameter Order
+        //TODO: This
         break;
       case 4: //Update Arduino AFR Table
         {

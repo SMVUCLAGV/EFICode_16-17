@@ -42,20 +42,6 @@ void Controller::initializeParameters() {
   calculatePulseTime(false, 0, 0);
 }
 
-void Controller::calculatePulseTime(bool singleVal, int row, int col) {
-  //TODO: Find/Code equation used to relate pulse time to engine load
-  if (singleVal) {
-    injectorPulseTimes[row][col] = 5;
-    return;
-  }
-  for (int x = 0; x < 10; x++) {
-    for (int y = 0; y < 32; y++) {
-      //TODO: Find/Code equation used to relate pulse time to engine load
-      injectorPulseTimes[x][y] = 5;
-    }
-  }
-}
-
 void Controller::countRevolution() {
   revolutions++;
   totalRevolutions++;
@@ -71,6 +57,7 @@ void Controller::countRevolution() {
 }
 
 void Controller::calculatePulseTime() {
+  //THIS IS THE OLD METHOD OF CALCULATING PULSE TIMES
   //(displ * rpm)/ 2 = cm^3/s air per power stroke
   // ideal gas law PV = nRT
   // T = IAT
@@ -86,6 +73,13 @@ void Controller::calculatePulseTime() {
     else if (RPM < desiredRPM) {
       idleVal = idleVal + .00001;
     }
+    O2V = getOIN();
+    if (O2V > desiredO2) {
+ +    idleVal = idleVal - .000002;
+ +  }
+ +  else if (O2V < desiredO2) {
+ +    idleVal = idleVal + .000002;
+ +  }
   }
   double val = getMAP() * injectionConstant / (getTemp(IAT_Pin) * fuelRatio * injectorFuelRate);
   //Calculate pulse time
@@ -105,4 +99,22 @@ void Controller::lookupPulseTime() {
   injectorPulseTime = injectorPulseTimes[loadIndex][RPMIndex];
   //TODO: write additional calculations necessary
   //TODO: handle linear interpolation
+}
+
+void Controller::calculatePulseTime(bool singleVal, int row, int col) {
+  //TODO: Find/Code equation used to relate pulse time to engine load
+  if (singleVal) {
+    injectorPulseTimes[row][col] = 5;
+    return;
+  }
+  for (int x = 0; x < 10; x++) {
+    for (int y = 0; y < 32; y++) {
+      //TODO: Find/Code equation used to relate pulse time to engine load
+      injectorPulseTimes[x][y] = 5;
+    }
+  }
+  //1: Lookup Pulse Time
+  //2: Inject for that pulse time
+  //3: Read from O2 sensor to see if we are hitting desired AFR
+  //4: Adjust pulse time, too much fuel = decrease pulse time and vice versa
 }
