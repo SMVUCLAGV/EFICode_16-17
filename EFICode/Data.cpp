@@ -6,6 +6,7 @@
 void Controller::sendCurrentData() {
   //Sends data on each of our sensors to Serial output
   struct values {
+      unsigned long frontPad = 0x80000001;
       unsigned long time;
       unsigned long totalRevs;
       float ECT;
@@ -15,6 +16,7 @@ void Controller::sendCurrentData() {
       float OIN;
       float totalPulseTime;
       long RPM;
+      unsigned long backPad = 0x80000000;
   } values;
 
   //TODO: Convert to micros
@@ -27,7 +29,7 @@ void Controller::sendCurrentData() {
   values.OIN = OIN;
   values.RPM = (long) RPM;
   values.totalPulseTime = totalPulseTime;
-  Serial.write((byte*)&values, 36);
+  Serial.write((byte*)&values, 44);
 }
 
 void Controller::printEndingData() {

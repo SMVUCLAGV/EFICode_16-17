@@ -38,8 +38,22 @@ void Controller::initializeParameters() {
   for (int x = 0; x < 32; x++) {
     totalPulse[x] = 0; //Initial fuel usage in each RPM range - the ranges are shown in parameters.h
   }
-
   currentlySendingData = false;
+  calculatePulseTime(false, 0, 0);
+}
+
+void Controller::calculatePulseTime(bool singleVal, int row, int col) {
+  //TODO: Find/Code equation used to relate pulse time to engine load
+  if (singleVal) {
+    injectorPulseTimes[row][col] = 5;
+    return;
+  }
+  for (int x = 0; x < 10; x++) {
+    for (int y = 0; y < 32; y++) {
+      //TODO: Find/Code equation used to relate pulse time to engine load
+      injectorPulseTimes[x][y] = 5;
+    }
+  }
 }
 
 void Controller::countRevolution() {
@@ -82,4 +96,13 @@ void Controller::calculatePulseTime() {
   totalPulseTime += pulseTime;
   pulseTime += openTime;
   injectorPulseTime = pulseTime;
+}
+
+void Controller::lookupPulseTime() {
+  double loadPCT = .05; //TODO: Calculate loadPCT from relevant parameters
+  int loadIndex = ((int) (loadPCT * 100)) / 10;
+  int RPMIndex = RPM / 32;
+  injectorPulseTime = injectorPulseTimes[loadIndex][RPMIndex];
+  //TODO: write additional calculations necessary
+  //TODO: handle linear interpolation
 }

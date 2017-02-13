@@ -4,16 +4,14 @@
 
 bool Controller::getCommand() {
   //Check if there is a command in serial, if so, grab it and figure out what function to call
-  if (Serial.available() >= 2) {
-    String message = Serial.readString();
-    String iden = message.substring(0,2);
-    int id = iden.toInt();
-    String val = message.substring(2);
-    double vald = 0;
-    int vali = 0;
+  if (Serial.available() >= 1) {
+    char id = Serial.read();
+    double val_d = 0;
+    long val_i = 0;
     switch(id) {
       case 0:
         //TODO: Arduino RESET
+        //digitalWrite(RST_PIN, HIGH);
         break;
       case 1: //Start Sending Data
         currentlySendingData = true;
@@ -24,36 +22,56 @@ bool Controller::getCommand() {
       case 3:
         //TODO: Synchronize Parameter Order
         break;
-      case 4:
-        //TODO: Update Arduino AFR Table
+      case 4: //Update Arduino AFR Table
+        {
+          int numCols = Serial.read();
+          int numRows = Serial.read();
+          for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 32; y++) {
+              double* currentRatio;
+              Serial.readBytes((char*) currentRatio, 4);
+              fuelRatioTable[x][y] = *currentRatio;
+            }
+          }
+          calculatePulseTime(false, 0, 0);
+        }
         break;
-      case 5:
-        //TODO: Update DAQ AFR Table
+      case 5: //Update DAQ AFR Table
+        Serial.write(10);
+        Serial.write(36);
+        for (int x = 0; x < 10; x++) {
+          Serial.write((byte*)fuelRatioTable[x], 128);
+        }
         break;
-      case 6:
-        //TODO: Set Idle Fuel Ratio
-        vald = val.toFloat();
-        setIdleVal(vald);
+      case 6: //Idle Fuel Ratio
+        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+          return false;
+        }
+        setIdleVal(val_d);
         break;
-      case 7:
-        //TODO: Set Current Fuel Ratio
-        vald = val.toFloat();
-        setFuelRatio(vald);
+      case 7: //Current Fuel Ratio
+        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+          return false;
+        }
+        setFuelRatio(val_d);
         break;
-      case 8:
-        //TODO: Set Reset Fuel Ratio
-        vald = val.toFloat();
-        setResetRatio(vald);
+      case 8: //Reset Fuel Ratio
+        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+          return false;
+        }
+        setResetRatio(val_d);
         break;
-      case 9:
-        //TODO: Set desired RPM
-        vali = val.toInt();
-        setDesiredRPM(vali);
+      case 9: //Desired RPM
+        if (Serial.readBytes((byte*)&val_i, 4) < 4) {
+          return false;
+        }
+        setDesiredRPM(val_i);
         break;
-      case 10:
-        //TODO: Set desired O2
-        vald = val.toFloat();
-        setDesiredO2(vald);
+      case 10: //Desired O2
+        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+          return false;
+        }
+        setDesiredO2(val_d);
         break;
       default:
         break;
@@ -73,6 +91,7 @@ bool Controller::setFuelRatio(double val) {
 
 bool Controller::setDesiredRPM(int dRPM) {
   desiredRPM = dRPM;
+  return true;
 }
 
 bool Controller::setDesiredO2(double dO2) {

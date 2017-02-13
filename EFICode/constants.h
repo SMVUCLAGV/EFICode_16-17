@@ -15,7 +15,7 @@ const double injectorFuelRate = 2.1333333333; //grams per second
 
 const double maxIdleTPS = 0.15;
 const double desiredO2 = 0.5;
-const int endRPM = 80000;
+const int endRPM = 8000;
 
 const int RPMIncrement = 250;
 

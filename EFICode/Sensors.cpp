@@ -19,6 +19,7 @@ const double TPSOffset = -.33746;
 
 double Controller::getTPS() {
   //gets throttle position based off of the percentage of throttle area open
+  //TODO: Create sin lookup table
   return sin(TPSConversion * analogRead(TPS_Pin) + TPSOffset);
 }
 
