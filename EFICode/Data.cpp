@@ -32,21 +32,22 @@ void Controller::sendCurrentData() {
   Serial.write((byte*)&values, 44);
 }
 
-void Controller::printEndingData() {
-  unsigned long sumPulse = 0;
-  int pulseUnder3000 = 0;
-  for (int i = 0; i <= 31; i++) {
-    sumPulse += totalPulse[i];
-    if (i < 16) {
-      pulseUnder3000 += totalPulse[i];
-    }
-
-    //TODO: Do this with string interpolation
-    Serial.print(String(i*RPMIncrement) + "-" + String((i+1)*RPMIncrement));
-    Serial.print(": ");
-    Serial.println(totalPulse[i]);
-  }
-  Serial.println("Total     : " + String(sumPulse));
-  Serial.println("Under 3000: " + String(pulseUnder3000));
-  Serial.end();
-}
+// OBSOLETE! KEPT FOR REFERENCE!
+//void Controller::printEndingData() {
+//  unsigned long sumPulse = 0;
+//  int pulseUnder3000 = 0;
+//  for (int i = 0; i <= 31; i++) {
+//    sumPulse += totalPulse[i];
+//    if (i < 16) {
+//      pulseUnder3000 += totalPulse[i];
+//    }
+//
+//    //TODO: Do this with string interpolation
+//    Serial.print(String(i*RPMIncrement) + "-" + String((i+1)*RPMIncrement));
+//    Serial.print(": ");
+//    Serial.println(totalPulse[i]);
+//  }
+//  Serial.println("Total     : " + String(sumPulse));
+//  Serial.println("Under 3000: " + String(pulseUnder3000));
+//  Serial.end();
+//}

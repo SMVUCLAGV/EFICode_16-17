@@ -7,70 +7,82 @@
 Controller *c;
 void countRev();
 void pulseOff();
+void enableINJ();
 
 void setup() {
+  // Construct Controller object.
   c = new Controller();
-  c->readSensors();
-  attachInterrupt(HES_Pin, countRev, FALLING);
-  c->calculatePulseTime();
-  Timer3.initialize(100000);
-  Timer3.attachInterrupt(pulseOff, c->injectorPulseTime); //Attaches timer-based interrupt to stop injector from injecting
 
-  //TODO: Neaten this
-  c->realPulseTime = 0;
-  c->lastRPMCalcTime = millis();
-  c->lastInterrupt = millis();
+  // Update all sensor values to current values.
+  c->readSensors();
+
+  // Attach rpm detector to revolution counter interrupt.
+  attachInterrupt(HES_Pin, countRev, FALLING);
+
+  // Initialize pulseOff timer, but do not attach the interrupt until it is necessary.
+  Timer3.initialize();
 }
 
 void loop() {
   //TODO: Abstract this away
-  if (c->RPM > endRPM) {
-    //If the engine goes above our max RPM, shut it off and print out the ending analytics
-    c->fuelRatio = 0;
-    c->openTime = 0;
-    c->printEndingData();
+
+  // Considers the engine off if it falls below a certain RPM. When this happens,
+  if (c->detectEngineOff()) {
+    if (!c->INJisDisabled) {
+      disableINJ();
+    }
   }
-  if (c->revolutions >= 25) {
+
+  if (c->revolutions >= revsPerCalc) {
     //Calculate RPM each cycle
     c->RPM = c->getRPM(micros() - c->lastRPMCalcTime, c->revolutions);
-    c->startupVal = 1;
     c->revolutions = 0;
     c->lastRPMCalcTime = micros();
   }
 
-  c->calculatePulseTime(); //Calculate injection time on each loop cycle
-  
-  if (micros() - c->lastRPMCalcTime >= 2000000) {
-    //If RPM falls below 600, sets RPM to 0 meaning shut the engine off
-    c->RPM = 0;
-    c->startupVal = c->resetVal;
-    c->totalRevolutions = 0;
-  }
+  // Update Controller with most recent sensor values.
+  c->readSensors();
+
+  // Look up injection time on each loop cycle
+  c->lookupPulseTime();
+
+  // Only send data if told to do so.
   if (c->currentlySendingData) {
-    if (micros()-c->lastSerialOutputTime>=500000) {
-      //If it's been more than 500ms since we last printed data, print data
+    if (micros() - c->lastSerialOutputTime >= c->maxTimePerSampleReported) {
       c->sendCurrentData();
       c->lastSerialOutputTime = micros();
     }
   }
+
+  // Check for commands from Serial port.
+  c->getCommand();
 }
 
 void countRev() {
+  if (c->INJisDisabled) {
+    enableINJ();
+  }
   c->countRevolution();
 }
 
 void pulseOff() {
-  //When it's time to turn the injector off, follow these steps and turn it off
-  //ISR for Timer3 interrupt
-  if (c->delayCount == 1) {
-    //Determined experimentally.  I think the Timer interrupts in the very beginning.  To avoid this first interrupt, I switched to 1.  Can probably be revised and improved
-    digitalWrite(INJ_Pin, LOW);
-    c->realPulseTime = (micros() - c->lastRPMCalcTime) / 1000000;
-    int arrayIndex = c->RPM / RPMIncrement;
-    c->totalPulse[arrayIndex] += c->realPulseTime;
-  }
-  if (c->delayCount > 100) {
-    c->delayCount = 2;
-  }
-   c->delayCount++;
+  // When it's time to turn the injector off, follow these steps and turn it off
+  // ISR for Timer3 interrupt
+  digitalWrite(INJ_Pin, LOW);
+
+  // Save the amount of time the injector pin spent HIGH.
+  c->realPulseTime = (micros() - c->lastRPMCalcTime) / 1000000;
+  c->totalPulseTime += c->realPulseTime;
 }
+
+void enableINJ() {
+  Timer3.attachInterrupt(pulseOff, c->injectorPulseTime);
+  c->INJisDisabled = false;
+}
+
+void disableINJ() {
+  Timer3.detachInterrupt();
+  pulseOff();
+  c->INJisDisabled = true;
+}
+

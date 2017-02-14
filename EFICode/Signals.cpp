@@ -26,14 +26,14 @@ bool Controller::getCommand() {
         {
           int numCols = Serial.read();
           int numRows = Serial.read();
-          for (int x = 0; x < 10; x++) {
-            for (int y = 0; y < 32; y++) {
+          for (int x = 0; x < numTableRows; x++) {
+            for (int y = 0; y < numTableCols; y++) {
               double* currentRatio;
               Serial.readBytes((char*) currentRatio, 4);
               fuelRatioTable[x][y] = *currentRatio;
             }
           }
-          calculatePulseTime(false, 0, 0);
+          calculateBasePulseTime(false, 0, 0);
         }
         break;
       case 5: //Update DAQ AFR Table

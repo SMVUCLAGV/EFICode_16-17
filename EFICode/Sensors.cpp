@@ -5,8 +5,8 @@
 
 const double voltageConversion = .0049;
 
-int Controller::getRPM (int timePassed, int rev) {
-  return (60000000 * rev) / ((double) timePassed);
+int Controller::getRPM (long int timePassed, int rev) {
+  return (60000000.0 * rev) / (timePassed);
 }
 
 //TPS Measurement
