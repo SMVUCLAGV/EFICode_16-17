@@ -9,7 +9,7 @@ Controller::Controller() {
   pinMode(INJ_Pin, OUTPUT);
   //Initializes Serial input and output at the specified baud rate.
   Serial.begin(BAUD_RATE);
-  Serial.write("Arduino Start");
+  Serial.write("Arduino Start\n");
   initializeParameters();
   readSensors();
 }
@@ -46,7 +46,7 @@ void Controller::initializeParameters() {
   totalPulseTime = 0;
 
   // Start off not reporting any data.
-  currentlySendingData = false;
+  currentlySendingData = true;
 
   // Fill in fuel ratio table with 14.7 across the board.
   // Should be replaced with code that gets the last saved table from memory!

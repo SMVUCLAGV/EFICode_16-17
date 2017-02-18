@@ -17,7 +17,7 @@ void setup() {
   c->readSensors();
 
   // Attach rpm detector to revolution counter interrupt.
-  attachInterrupt(HES_Pin, countRev, FALLING);
+  attachInterrupt(HES_Interrupt, countRev, FALLING);
 
   // Initialize pulseOff timer, but do not attach the interrupt until it is necessary.
   Timer3.initialize();

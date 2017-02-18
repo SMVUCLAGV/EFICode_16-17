@@ -9,7 +9,7 @@ bool Controller::getCommand() {
     switch(id) {
       byte acknowledgement [5];
       acknowledgement[0] = id;
-      ((unsigned int*)(&value[1]))[0] = 0x80000002;
+      ((unsigned int*)(&acknowledgement[1]))[0] = 0x80000002;
       case 0: //Arduino Reset
       {
         Serial.write(acknowledgement, 5);
@@ -113,7 +113,7 @@ bool Controller::startDataTransmission() {
 }
 
 bool Controller::stopDataTransmission() {
-  currentlySendingData = false
+  currentlySendingData = false;
   return true;
 }
 
