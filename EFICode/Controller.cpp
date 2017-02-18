@@ -9,6 +9,7 @@ Controller::Controller() {
   pinMode(INJ_Pin, OUTPUT);
   //Initializes Serial input and output at the specified baud rate.
   Serial.begin(BAUD_RATE);
+  Serial.write("Arduino Start");
   initializeParameters();
   readSensors();
 }

@@ -6,19 +6,27 @@ bool Controller::getCommand() {
   //Check if there is a command in serial, if so, grab it and figure out what function to call
   if (Serial.available() >= 1) {
     char id = Serial.read();
-    double val_d = 0;
-    long val_i = 0;
     switch(id) {
+      byte acknowledgement [5];
+      acknowledgement[0] = id;
+      ((unsigned int*)(&value[1]))[0] = 0x80000002;
       case 0: //Arduino Reset
-        //TODO: This
+      {
+        Serial.write(acknowledgement, 5);
         //digitalWrite(RST_PIN, HIGH);
-        break;
+      }
       case 1: //Start Sending Data
-        currentlySendingData = true;
+      {
+        Serial.write(acknowledgement, 5);
+        startDataTransmission();
         break;
+      }
       case 2: //Stop Sending Data
-        currentlySendingData = false;
+      {
+        stopDataTransmission();
+        Serial.write(acknowledgement, 5);
         break;
+      }
       case 3: //Synchronize Parameter Order
         //TODO: This
         break;
@@ -44,39 +52,69 @@ bool Controller::getCommand() {
         }
         break;
       case 6: //Idle Fuel Ratio
-        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+      {
+        double idleVal;
+        if (Serial.readBytes((byte*)&idleVal, 4) < 4) {
           return false;
         }
-        setIdleVal(val_d);
+        setIdleVal(idleVal);
+        Serial.write(acknowledgement,5);
         break;
+      }
       case 7: //Current Fuel Ratio
-        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+      {
+        double currentRatio;
+        if (Serial.readBytes((byte*)&currentRatio, 4) < 4) {
           return false;
         }
-        setFuelRatio(val_d);
+        setFuelRatio(currentRatio);
+        Serial.write(acknowledgement,5);
         break;
+      }
       case 8: //Reset Fuel Ratio
-        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+      {
+        double resetVal;
+        if (Serial.readBytes((byte*)&resetVal, 4) < 4) {
           return false;
         }
-        setResetRatio(val_d);
+        setResetRatio(resetVal);
+        Serial.write(acknowledgement,5);
         break;
+      }
       case 9: //Desired RPM
-        if (Serial.readBytes((byte*)&val_i, 4) < 4) {
+      {
+        int dRPM;
+        if (Serial.readBytes((byte*)&dRPM, 4) < 4) {
           return false;
         }
-        setDesiredRPM(val_i);
+        setDesiredRPM(dRPM);
+        Serial.write(acknowledgement,5);
         break;
+      }
       case 10: //Desired O2
-        if (Serial.readBytes((byte*)&val_d, 4) < 4) {
+      {
+        double dO2;
+        if (Serial.readBytes((byte*)&dO2, 4) < 4) {
           return false;
         }
-        setDesiredO2(val_d);
+        setDesiredO2(dO2);
+        Serial.write(acknowledgement,5);
         break;
+      }
       default:
         break;
     }
   }
+}
+
+bool Controller::startDataTransmission() {
+  currentlySendingData = true;
+  return true;
+}
+
+bool Controller::stopDataTransmission() {
+  currentlySendingData = false
+  return true;
 }
 
 bool Controller::setIdleVal(double val) {

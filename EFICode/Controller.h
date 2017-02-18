@@ -14,6 +14,9 @@ struct Controller {
   void calculatePulseTime();
   void lookupPulseTime();
   void calculateBasePulseTime(bool singleVal, int row, int col);
+  bool startDataTransmission();
+  bool stopDataTransmission();
+
   
   bool detectEngineOff();
   bool INJisDisabled;
