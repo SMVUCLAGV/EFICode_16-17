@@ -46,6 +46,7 @@ const double MAPOffset = 20000; // = oldMAPOffset * scalingFactor
 double Controller::getMAP() {
   //Calculates MAP, outputs in Pa
   return MAPConversion * analogRead(MAP_Pin) + MAPOffset;
+  //return voltageConversion * analogRead(FP_Pin);
 }
 
 double Controller::getOIN () {

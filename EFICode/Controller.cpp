@@ -69,9 +69,8 @@ void Controller::countRevolution() {
   revolutions++;
   totalRevolutions++;
   //Inject on every second revolution because this is a 4 stroke engine
-  if (totalRevolutions % 2 == 1 || totalRevolutions < 25) {
+  if (totalRevolutions % 2 == 1 || totalRevolutions < revsPerCalc) {
     digitalWrite(INJ_Pin, HIGH);
-    lastRPMCalcTime = micros();
     Timer3.setPeriod(injectorPulseTime);
     Timer3.restart();
   }

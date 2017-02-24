@@ -28,6 +28,9 @@ void loop() {
 
   // Considers the engine off if it falls below a certain RPM. When this happens,
   if (c->detectEngineOff()) {
+    c->revolutions = 0;
+    c->RPM = 0;
+    c->lastRPMCalcTime = micros();
     if (!c->INJisDisabled) {
       disableINJ();
     }

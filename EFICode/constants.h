@@ -23,7 +23,7 @@ const double injectorFuelRate = 2.1333333333; //grams per second
 const double maxIdleTPS = 0.15;
 const double desiredO2 = 0.5;
 
-const int revsPerCalc = 25;
+const int revsPerCalc = 2;
 
 const int maxRPM = 8000;
 const int minRPM = 250;
@@ -36,7 +36,7 @@ const int numTableCols = 16;
 const int BAUD_RATE = 9600;//860800;
 
 // Engine is considered off if it has RPM less than 500.
-const int SHUTOFF_RPM = 500;
+const int SHUTOFF_RPM = 120;
 
 // Amount of time corresponding to SHUTOFF_RPM.
 // Given in microseconds.
