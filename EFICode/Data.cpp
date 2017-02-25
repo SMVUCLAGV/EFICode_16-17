@@ -13,7 +13,7 @@ void Controller::sendCurrentData() {
       float IAT;
       float MAP;
       float TPS;
-      float OIN;
+      float AFR;
       float totalPulseTime;
       long RPM;
       unsigned long backPad = 0x80000000;
@@ -26,7 +26,7 @@ void Controller::sendCurrentData() {
   values.IAT = IAT;
   values.MAP = MAP;
   values.TPS = TPS;
-  values.OIN = OIN;
+  values.AFR = AFR;
   values.RPM = (long) RPM;
   values.totalPulseTime = totalPulseTime;
   Serial.write((byte*)&values, 44);

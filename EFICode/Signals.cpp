@@ -93,11 +93,11 @@ bool Controller::getCommand() {
       }
       case 10: //Desired O2
       {
-        double dO2;
-        if (Serial.readBytes((byte*)&dO2, 4) < 4) {
+        double dAFR;
+        if (Serial.readBytes((byte*)&dAFR, 4) < 4) {
           return false;
         }
-        setDesiredO2(dO2);
+        setDesiredAFR(dAFR);
         Serial.write(acknowledgement,5);
         break;
       }
@@ -132,8 +132,8 @@ bool Controller::setDesiredRPM(int dRPM) {
   return true;
 }
 
-bool Controller::setDesiredO2(double dO2) {
-  desiredOIN = dO2;
+bool Controller::setDesiredAFR(double dAFR) {
+  desiredAFR = dAFR;
   return true;
 }
 

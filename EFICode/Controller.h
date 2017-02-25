@@ -25,14 +25,13 @@ struct Controller {
   double getTPS();
   double getTemp(int pin);
   double getMAP();
-  double getOIN();
+  double getAFR();
 
   void initializeParameters();
-  bool isLean (int pin);
   bool setIdleVal(double val);
   bool setFuelRatio(double val);
   bool setDesiredRPM(int dRPM);
-  bool setDesiredO2(double dO2);
+  bool setDesiredAFR(double dAFR);
   bool setFuelRatioTable(int index, double ratio); //Set the fuel ratio at the appropriate index in the fuel ratio table
   bool setStartupValue(double val);
   bool setResetRatio(double val);
@@ -42,18 +41,27 @@ struct Controller {
   double ECT;
   double IAT;
   double MAP;
-  double OIN;
+  double AFR;
+  double AFRVolts;
 
   int desiredRPM;
-  double desiredOIN;
+  double desiredAFR;
 
+  int revsPerCalc;
   int revolutions;
   unsigned long totalRevolutions;
+
+  double tempAlpha;
+  double tempBeta;
+  double tempInputVal; 
 
   double fuelRatio; //unitless
   double idleVal;
   double resetVal;
   double startupVal;
+  
+  int mapIndex;
+  int rpmIndex;
   
   unsigned long totalPulse[numTableCols];
   long totalPulseTime;
@@ -68,13 +76,14 @@ struct Controller {
   int openTime;
 
   bool currentlySendingData;
-  long int maxTimePerSampleReported;
+  long int minTimePerSampleReported;
 
   //WARNING: From here down are fuel ratio parameters. Don't change these unless you know what you are doing!
 
   double fuelRatioTable[numTableRows][numTableCols];
 
   long injectorBasePulseTimes[numTableRows][numTableCols];
+  void AFRFeedback();
 
   long interpolate2D(int blrow, int blcol, double x, double y) {
     // Takes the coordinate of the bottom left corner of the square to perform 2D interpolation over.

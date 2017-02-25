@@ -5,137 +5,145 @@
 #include "TimerThree.h"
 
 Controller::Controller() {
-  //Sets injector pin to output mode. All other pins default to input mode.
-  pinMode(INJ_Pin, OUTPUT);
-  //Initializes Serial input and output at the specified baud rate.
-  Serial.begin(BAUD_RATE);
-  Serial.write("Arduino Start\n");
-  initializeParameters();
-  readSensors();
+    //Sets injector pin to output mode. All other pins default to input mode.
+    pinMode(INJ_Pin, OUTPUT);
+  
+    //Initializes Serial input and output at the specified baud rate.
+    Serial.begin(BAUD_RATE);
+  
+    // Initializing message
+    Serial.write("Initializing...\n");
+  
+    // Initialize parameters with their starting values.
+    initializeParameters();
+  
+    // Update sensors to their initial values.
+    readSensors();
+  
+    // Perform quick diagnostics here...
+    // runDiagnostics();
+  
+    // Indicate ready
+    Serial.write("Ready to go!\n");
 }
 
 bool Controller::readSensors() {
-  TPS = getTPS();
-  ECT = getTemp(ECT_Pin);
-  IAT = getTemp(IAT_Pin);
-  MAP = getMAP();
-  OIN = getOIN();
+    TPS = getTPS();
+    ECT = getTemp(ECT_Pin);
+    IAT = getTemp(IAT_Pin);
+    MAP = getMAP();
 }
 
 void Controller::initializeParameters() {
-  // Start at zero revolutions.
-  revolutions = 0;
-  totalRevolutions = 0;
+    // Start at zero revolutions.
+    revolutions = 0;
+    totalRevolutions = 0;
 
-  // Set the max speed at which data is reported
-  maxTimePerSampleReported = 100000;  //Every 1ms
+    // Set the max speed at which data is reported
+    minTimePerSampleReported = 1E3;  //In microseconds
 
-  // Initialize injector to disables mode.
-  INJisDisabled = true;
+    // Number of revolutions that must pass before recalculating RPM.
+    revsPerCalc = 2;
 
-  // NEEDS EXPLANATION
-  delayCount = 4;
+    // Temperature conversion parameters from best fit curve to exponential function.
+    // These values could possibly need recalibration while running.
+    tempAlpha = -0.0317;
+    tempBeta = 10.1133;
+    tempInputVal = 5.00 / voltageConversion; 
+    
+    // Initialize AFR values.
+    AFR = 0;
+    AFRVolts = 0;
+    
+    // Initialize MAP and RPM indicies to zero.
+    mapIndex = 0;
+    rpmIndex = 0;
+    
+    // Initialize injector to disabled mode.
+    // Used to detach the timer interrupt for pulsing off
+    // when the engine is not running.
+    INJisDisabled = true;
 
-  // Amount of time in microseconds for the injector to open.
-  openTime = 350;
-
-  // Used to determine the amount of fuel used in each rpm range.
-  for (int x = 0; x < numTableCols; x++) {
-    totalPulse[x] = 0;
-  }
-  totalPulseTime = 0;
-
-  // Start off not reporting any data.
-  currentlySendingData = true;
-
-  // Fill in fuel ratio table with 14.7 across the board.
-  // Should be replaced with code that gets the last saved table from memory!
-  for (int x = 0; x < numTableRows; x++) {
-    for (int y = 0; y < numTableCols; y++) {
-      fuelRatioTable[x][y] = 14.7;
+    // Used to determine the amount of fuel used in each rpm range.
+    for (int x = 0; x < numTableCols; x++) {
+        totalPulse[x] = 0;
     }
-  }
+    totalPulseTime = 0;
 
-  // Calculate base pulse times from fuel ratio table. Should actually
-  // store the last table used and recall it from memory here!
-  calculateBasePulseTime(false, 0, 0);
+    // True   -> Start with data reporting on.
+    // False  -> Start with data reporting off.
+    currentlySendingData = true;
 
-  realPulseTime = 0;
-  lastRPMCalcTime = micros();
-  lastInterrupt = millis();
+    // Fill in fuel ratio table with 14.7 across the board.
+    // Should be replaced with code that gets the last saved table from memory!
+    // 14.7 is the mass ratio of air to fuel for approximately stoichiometric combustion.
+    for (int x = 0; x < numTableRows; x++) {
+        for (int y = 0; y < numTableCols; y++) {
+        fuelRatioTable[x][y] = 14.7;
+        }
+    }
+
+    // Calculate base pulse times from fuel ratio table. Should actually
+    // store the last table used and recall it from memory here!
+    calculateBasePulseTime(false, 0, 0);
+
+    realPulseTime = 0;
+    lastRPMCalcTime = micros();
 }
 
 void Controller::countRevolution() {
+  // Increment the number of revolutions 
   revolutions++;
-  totalRevolutions++;
+  
   //Inject on every second revolution because this is a 4 stroke engine
-  if (totalRevolutions % 2 == 1 || totalRevolutions < revsPerCalc) {
-    digitalWrite(INJ_Pin, HIGH);
+  if (revolutions % 2 == 1) {
     Timer3.setPeriod(injectorPulseTime);
+    digitalWrite(INJ_Pin, HIGH);
     Timer3.restart();
   }
 }
 
-// OBSOLETE! KEPT FOR REFERENCE!
-//void Controller::calculatePulseTime() {
-//  //THIS IS THE OLD METHOD OF CALCULATING PULSE TIMES
-//  //(displ * rpm)/ 2 = cm^3/s air per power stroke
-//  // ideal gas law PV = nRT
-//  // T = IAT
-//  // P = MAP
-//  // mult n by mm of air, divide by 14.7
-//  double TPSx = 1 + getTPS() - TPS;
-//  TPS = getTPS();
-//  //  if (totalRevolutions > 2 && TPS <= maxIdleTPS) {
-//  //    //RPM-based feedback loop
-//  //    if (RPM > desiredRPM) {
-//  //      idleVal = idleVal - .00001;
-//  //    }
-//  //    else if (RPM < desiredRPM) {
-//  //      idleVal = idleVal + .00001;
-//  //    }
-//  //    O2V = getOIN();
-//  //    if (O2V > desiredO2) {
-//  // +    idleVal = idleVal - .000002;
-//  // +  }
-//  // +  else if (O2V < desiredO2) {
-//  // +    idleVal = idleVal + .000002;
-//  // +  }
-//  //  }
-//  double val = getMAP() * injectionConstant / (getTemp(IAT_Pin) * fuelRatio * injectorFuelRate);
-//  //Calculate pulse time
-//  long pulseTime = 1000000 * val * startupVal * TPSx;
-//  if (TPS <= maxIdleTPS) {
-//    pulseTime *= idleVal;
-//  }
-//  totalPulseTime += pulseTime;
-//  pulseTime += openTime;
-//  injectorPulseTime = pulseTime;
-//}
-
 void Controller::lookupPulseTime() {
-  // Map the MAP and RPM readings to a number between 0 and 1.
-  double scaledMAP = map(MAP, minMAP, maxMAP, 0, 1); //number from 0 - 1
-  double scaledRPM = map(RPM, minRPM, maxRPM, 0, 1); //number from 0 - 1
+    // Map the MAP and RPM readings to the scale of 
+    double scaledMAP = map(MAP, minMAP, maxMAP, 0, maxTableRowIndex); //number from 0 - numTableRows-1
+    double scaledRPM = map(RPM, minRPM, maxRPM, 0, maxTableColIndex); //number from 0 - numTableCols-1
 
-  // Clip out of bounds values to 0 and 1.
-  scaledMAP = constrain(scaledMAP, 0, 1);
-  scaledRPM = constrain(scaledRPM, 0, 1);
+    // Clip out of bounds values to 0 and 1.
+    scaledMAP = constrain(scaledMAP, 0, maxTableRowIndex);
+    scaledRPM = constrain(scaledRPM, 0, maxTableColIndex);
 
-  // Get lower bounds for load and rpm indicies.
-  int mapIndex = scaledMAP * (numTableRows - 1);
-  int rpmIndex = scaledRPM * (numTableCols - 1);
+    // Get lower bounds for load and rpm indicies.
+    mapIndex = scaledMAP;
+    rpmIndex = scaledRPM;
 
-  // Clip extrapolation to the max index. Otherwise, perform 2D interpolation to get
-  // the base pulse time and then divide by the temperature
-  if (mapIndex < numTableRows - 1 && rpmIndex < numTableCols) {
-    // Interpolation case
-    injectorPulseTime = interpolate2D(mapIndex, rpmIndex, scaledMAP, scaledRPM) / IAT;
-  }
-  else {
-    // Clipped case
-    injectorPulseTime = injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
-  }
+    // Clip extrapolation to the value at the max index. Otherwise, perform 2D interpolation to get
+    // the base pulse time and then divide by the temperature.
+    if (rpmIndex < maxTableColIndex && mapIndex < maxTableRowIndex) {
+        // Interpolation case
+        injectorPulseTime = interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
+    }
+    else {
+        // Clipped case
+        injectorPulseTime = injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
+    }
+}
+
+// IF O2 SENSOR IS ERRORING OR NOT READY, THE ANALOG OUTPUT IS SET TO BE EQUAL
+// TO ZERO VOLTS. THEREFORE, I HAVE IMPOSED A 0.05 Volt LIMITATION ON VOLTAGES READ
+// FROM THE O2 SENSOR. IF THE VOLTAGE READ IS LESS THAN 0.05 Volts, then the AFR
+// FEEDBACK LOOP WILL DO NOTHING!
+void Controller::AFRFeedback() {
+    getAFR();   // Rename to "updateAFR"
+    if (AFRVolts < 0.05) {
+        return;
+    }
+    
+    double deltaAFR = fuelRatioTable[mapIndex][rpmIndex] - AFR;    // Positive if rich, negative if lean.
+    
+    // With more data on how the engine responds to input, will be able to
+    // fine tune this feedback to work more efficiently.
+    injectorBasePulseTimes[mapIndex][rpmIndex] = 
+    injectorBasePulseTimes[mapIndex][rpmIndex] * (1 - deltaAFR/AFR);
 }
 
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
