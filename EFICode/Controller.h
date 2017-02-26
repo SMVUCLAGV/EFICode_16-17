@@ -3,23 +3,75 @@
 
 #include "constants.h"
 
-struct Controller {
+class Controller {
+public:
+  // Constructor
   Controller();
+
+  // Updates sensor values.
   bool readSensors();
+
+  // Sends the current sensor values and requested parameter information.
   void sendCurrentData();
+
+  // If the currentlySendingData flag is set and the minTimePerSampleReported
+  // has passed since that last transmission, sends out a data sample.
+  void trySendingData();
+
+  // Possibly obsolete.
   void printEndingData();
+
+  // Checks the serial read buffer for incoming bytes. If bytes are found, acts
+  // according to the documentation specified in EFI Documentation.
   bool getCommand();
+
+  // Increments the counted number of revolutions since the last RPM update.
+  // Every 2nd revolution, switches the INJ_Pin to HIGH and sets a timer for
+  // the amount of time equal to the most recent calculated pulse time.
   void countRevolution();
-  void pulseOff();
-  void calculatePulseTime();
+
+  // Updates the RPM reading by dividing the total number of revolutions since
+  // the last update by the number of minutes that have passed.
+  void updateRPM();
+
+  // Performs 2D interpolation to lookup a pulse time for the given engine conditions.
   void lookupPulseTime();
+
+  // If singleVal is true, determines the pulse time for the specified cell [row][col]
+  // of the AFR Table in units of microseconds times kelvin.
+  // If singleVal is false, determines the pulse time for every single AFR Table value
+  // in the AFR Table. In its current state, this will overwrite any adjustments that
+  // the O2 sensor feedback loop has made to the base pulse times.
   void calculateBasePulseTime(bool singleVal, int row, int col);
+
+  // Sets the currentlySendingData flag to true, allowing the controller to report
+  // sampled data back to the DAQ system.
   bool startDataTransmission();
+
+  // Sets the currentlySendingData flag to false, preventing the controller from
+  // reporting sampled data back to the DAQ system.
   bool stopDataTransmission();
 
-  
+  // Returns true if the engine drops below the minimum RPM to consider the engine running.
   bool detectEngineOff();
-  bool INJisDisabled;
+
+  // Checks to see if the engine is on or off. If the engine switches state since the last
+  // check, changes parameters accordingly.
+  void checkEngineState();
+
+  // Turns the injector on if it is not disabled.
+  void pulseOn();
+
+  // Turns the injector off.
+  void pulseOff();
+
+  // Attaches the interrupt timer for shutting the injector off and 
+  // sets the INJisDisabled flag to false.
+  void enableINJ();
+
+  // Detaches the interrupt timer for shutting the injector off and
+  // sets the INJisDisabled flag to true.
+  void disableINJ();
 
   int getRPM (long int timePassed, int rev);
   double getTPS();
@@ -36,6 +88,37 @@ struct Controller {
   bool setStartupValue(double val);
   bool setResetRatio(double val);
 
+  // OBSOLETE!!
+  int desiredRPM;
+  double desiredAFR;
+  double fuelRatio; //unitless
+  double idleVal;
+  double resetVal;
+  double startupVal;
+  // END OF OBSOLETE!
+
+  void AFRFeedback();
+  long interpolate2D(int blrow, int blcol, double x, double y);
+  
+private:
+  // Has a value of true if the timer3 interrupt is detached from the "pulseOff" function.
+  // Also prevents the injector from pulsing on if true.
+  bool INJisDisabled;
+
+  int revsPerCalc;
+  int revolutions;
+  unsigned long totalRevolutions;
+  
+  long totalPulseTime;
+  long lastRPMCalcTime;
+  long injectorPulseTime;
+  int delayCount;
+  bool currentlySendingData;
+  long int minTimePerSampleReported;
+  long lastSerialOutputTime;
+  int mapIndex;
+  int rpmIndex;
+  
   int RPM;
   double TPS;
   double ECT;
@@ -44,57 +127,8 @@ struct Controller {
   double AFR;
   double AFRVolts;
 
-  int desiredRPM;
-  double desiredAFR;
-
-  int revsPerCalc;
-  int revolutions;
-  unsigned long totalRevolutions;
-
-  double tempAlpha;
-  double tempBeta;
-  double tempInputVal; 
-
-  double fuelRatio; //unitless
-  double idleVal;
-  double resetVal;
-  double startupVal;
-  
-  int mapIndex;
-  int rpmIndex;
-  
-  unsigned long totalPulse[numTableCols];
-  long totalPulseTime;
-
-  long lastRPMCalcTime;
-  long injectorPulseTime;
-  long realPulseTime;
-  int delayCount;
-
-  long lastSerialOutputTime;
-  long lastInterrupt;
-  int openTime;
-
-  bool currentlySendingData;
-  long int minTimePerSampleReported;
-
-  //WARNING: From here down are fuel ratio parameters. Don't change these unless you know what you are doing!
-
   double fuelRatioTable[numTableRows][numTableCols];
-
   long injectorBasePulseTimes[numTableRows][numTableCols];
-  void AFRFeedback();
-
-  long interpolate2D(int blrow, int blcol, double x, double y) {
-    // Takes the coordinate of the bottom left corner of the square to perform 2D interpolation over.
-    // x and y must be given in unit form. i.e., y = (yc-y1)-(y2-y1) and x = (xc-x1)-(x2-x1)
-    // (0 <= y <= 1 and 0 <= x <= 1)
-    return
-    injectorBasePulseTimes[blrow][blcol]*(1-y)*(1-x)+
-    injectorBasePulseTimes[blrow+1][blcol]*(y)*(1-x)+
-    injectorBasePulseTimes[blrow][blcol+1]*(1-y)*(x)+
-    injectorBasePulseTimes[blrow+1][blcol+1]*(y)*(x);
-  }
 };
 
 #endif

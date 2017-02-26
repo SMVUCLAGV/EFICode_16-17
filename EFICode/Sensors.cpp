@@ -29,13 +29,14 @@ double Controller::getTPS() {
 //tempIntercept = oldTempIntercept + 273
 const double tempAlpha = -0.0317;
 const double tempBeta = 10.1133;
-const double tempInputVal = 5.00 / voltageConversion; 
+const double tempInputVal = 5.00 / voltageConversion;
 
 double Controller::getTemp(int pin) {
+  //return analogRead(pin)*voltageConversion;
   //Gets temperature reading from specified sensor by using calibration curve
   //return tempSlope * analogRead(pin) + tempIntercept;
-  int mval = analogRead(pin);
-  return ((1) / (tempAlpha)) * (((mval) / (tempInputVal - mval)) - tempBeta);
+  int mval = 1023 - analogRead(pin);
+  return ((1) / (tempAlpha)) * ((log((mval) / (tempInputVal - mval))) - tempBeta);
 }
 
 //MAP Measurement

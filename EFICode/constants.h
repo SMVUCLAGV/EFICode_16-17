@@ -1,9 +1,14 @@
 #ifndef CONST_H
 #define CONST_H
 
+//Auxiliary Functions
+void countRev();
+void handle_pulseTimerTimeout();
+void enableINJ();
+void disableINJ();
+
 // Define all the pin numbers
 const int HES_Pin = 19;
-const int HES_Interrupt = 4;
 const int TPS_Pin = 2;
 const int ECT_Pin = 1;
 const int MAP_Pin = 5;
@@ -38,8 +43,12 @@ const int maxTableRowIndex = numTableRows - 1;
 const int numTableCols = 16;
 const int maxTableColIndex = numTableCols - 1;
 
+// Define the range of values that an AFR table value can take.
+const int MIN_AFR = 10;
+const int MAX_AFR = 17;
+
 // Define the BAUD_RATE to communicate with.
-const int BAUD_RATE = 9600; // In bits per second //Fast communication: 860800;
+const unsigned long BAUD_RATE = 860400; // In bits per second;
 
 // Engine is considered off if it has RPM less than the minimum RPM.
 const int SHUTOFF_RPM = minRPM;

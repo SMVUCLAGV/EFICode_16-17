@@ -20,7 +20,7 @@ void Controller::sendCurrentData() {
   } values;
 
   //TODO: Convert to micros
-  values.time = millis();
+  values.time = micros();
   values.totalRevs = totalRevolutions;
   values.ECT = ECT;
   values.IAT = IAT;
@@ -30,6 +30,15 @@ void Controller::sendCurrentData() {
   values.RPM = (long) RPM;
   values.totalPulseTime = totalPulseTime;
   Serial.write((byte*)&values, 44);
+}
+
+void Controller::trySendingData() {
+  if (currentlySendingData) {
+    if (micros() - lastSerialOutputTime >= minTimePerSampleReported) {
+      sendCurrentData();
+      lastSerialOutputTime = micros();
+    }
+  }
 }
 
 // OBSOLETE! KEPT FOR REFERENCE!
