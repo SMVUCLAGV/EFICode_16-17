@@ -4,45 +4,60 @@
 #include "Constants.h"
 #include "math.h"
 
+// timepassed is in microseconds
 int Controller::getRPM (long int timePassed, int rev) {
   return (60000000.0 * rev) / (timePassed);
 }
 
 //TPS Measurement
-//oldTPSConversion = 0.401738191;
-//oldTPSOffset = -.84
-//TPSConversion = oldTPSConversion * voltageConversion
-//TPSOffset = oldTPSOffset * oldtpsConversion
 const double TPSConversion = .0019685;
 const double TPSOffset = -.33746;
 
 double Controller::getTPS() {
-  //gets throttle position based off of the percentage of throttle area open
-  //TODO: Create sin lookup table
+  // Gets throttle position based off of the percentage of throttle area open
+  // TODO: Create sin lookup table
   return sin(TPSConversion * analogRead(TPS_Pin) + TPSOffset);
 }
 
 //Temperature Measurement
-//oldTempSlope = -19.451
-//oldTempIntercept = 89.135;
-//tempSlope = oldTempSlope * voltageConversion
-//tempIntercept = oldTempIntercept + 273
-const double tempAlpha = -0.0317;
-const double tempBeta = 10.1133;
+// Pre-computes the coefficient values in order to minimize operations
+// during runtime. These pre-computed values are enumerated below. Uses
+// the quadratic formula to calculate the temperature.
+const double tempAlpha = 1.04E-4;     // Coefficient of T^2 term.
+const double tempBeta = -1.01832E-1;  // Coefficient of T^1 term.
+const double tempGamma = 2.18539E1;   // Coefficient of T^0 term.
+
+// Coefficients resulting from combining alpha and beta in an efficient way.
+const double tempA = -tempBeta/(2*tempAlpha);
+const double tempB = -1/(4*pow(tempAlpha,1.5));
+const double tempC = pow((tempBeta)/(2*sqrt(tempAlpha)),2);
+
+// The input voltage to the voltage divider consisting of a 1k resistor and the
+// thermistor in series.
 const double tempInputVal = 5.00 / voltageConversion;
+const double minTempVal = 0.5 / voltageConversion;
+const double maxTempVal = 4.5 / voltageConversion;
 
 double Controller::getTemp(int pin) {
   //return analogRead(pin)*voltageConversion;
   //Gets temperature reading from specified sensor by using calibration curve
   //return tempSlope * analogRead(pin) + tempIntercept;
-  int mval = 1023 - analogRead(pin);
-  return ((1) / (tempAlpha)) * ((log((mval) / (tempInputVal - mval))) - tempBeta);
+  int mval = analogRead(pin);
+
+  // Constrain values to this range. Values outside of this range will be useless because
+  // the error in the curve fit becomes extremely large. This constraint also gets rid of
+  // the possibility of having imaginary or infinite results.
+  mval = constrain(mval, minTempVal, maxTempVal);
+
+  // TODO: Create log lookup table.
+
+  // Compute temperature from a curve fit to the exponential function with a quadratic
+  // power with respect to the temperature.
+  double x = log((tempInputVal-mval)/(mval));
+  return tempA + tempB*sqrt(tempC-(tempGamma-x));
 }
 
 //MAP Measurement
-//scalingFactor = 1000
-//oldMAPConversion = 18.8636364
-//oldMAPOffset = 20
 const double MAPConversion = 92.432; // = oldMAPConversion * voltageConversion * scalingFactor
 const double MAPOffset = 20000; // = oldMAPOffset * scalingFactor
 
