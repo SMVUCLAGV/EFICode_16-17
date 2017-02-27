@@ -23,6 +23,7 @@ bool Controller::getCommand() {
         // Write HIGH to the reset pin to perform a hardware reset of the controller.
         //digitalWrite(RST_PIN, HIGH);
       }
+      break;
       case 1: //Start Sending Data
       {
         // Send an acknowledgement message back to the DAQ system.
@@ -73,8 +74,8 @@ bool Controller::getCommand() {
             rowColAcknowledgement[1] = rowNum;
             // The next byte is the column number
             rowColAcknowledgement[2] = colNum;
-            // The next 4 bytes are the ACKNOWLEDGEMENT_END_VAL double.
-            rowColAcknowledgement[3] = ACKNOWLEDGEMENT_END_VAL;
+            // The next 4 bytes are the ACKNOWLEDGEMENT_END_VAL unsigned int.
+            ((unsigned int*)(&rowColAcknowledgement[3]))[0] = ACKNOWLEDGEMENT_END_VAL;
             // Send the acknowledgement out.
             Serial.write(rowColAcknowledgement,7);
             return true;
@@ -91,16 +92,22 @@ bool Controller::getCommand() {
           // Check to see if the requested row and column numbers are in the bounds of the table.
           if (rowNum < numTableRows && colNum < numTableCols && rowNum > 0 && colNum > 0)
           {
+            //Serial.print("Received valid row and column numbers.\n");
             // Save the requested value.
             double requestedVal = fuelRatioTable[rowNum][colNum];
             // Send the requested value to the DAQ system.
             byte returnMsg[11];
-            returnMsg[0] = id;
+            returnMsg[0] = 5;
             returnMsg[1] = rowNum;
             returnMsg[2] = colNum;
-            returnMsg[3] = requestedVal;
-            returnMsg[7] = ACKNOWLEDGEMENT_END_VAL;
-            Serial.write((char*) &requestedVal, 11);
+            ((double*)(&returnMsg[3]))[0] = requestedVal;
+            ((unsigned int*)(&returnMsg[7]))[0] = ACKNOWLEDGEMENT_END_VAL;
+            //Serial.println(String("5")+","+
+            //String(rowNum)+","+
+            //String(colNum)+","+
+            //String(requestedVal)+","+
+            //String(ACKNOWLEDGEMENT_END_VAL));
+            Serial.write((char*) &returnMsg, 11);
             return true;
           }
           return false;
@@ -157,7 +164,7 @@ bool Controller::getCommand() {
         break;
       }
       default:
-        break;
+      break;
     }
     return true;
   }

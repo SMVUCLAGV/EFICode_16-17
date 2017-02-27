@@ -63,7 +63,7 @@ void Controller::initializeParameters() {
 
     // True   -> Start with data reporting on.
     // False  -> Start with data reporting off.
-    currentlySendingData = true;
+    currentlySendingData = false;
 
     // Fill in fuel ratio table with 14.7 across the board.
     // Should be replaced with code that gets the last saved table from memory!

@@ -48,7 +48,7 @@ const int MIN_AFR = 10;
 const int MAX_AFR = 17;
 
 // Define the BAUD_RATE to communicate with.
-const unsigned long BAUD_RATE = 860400; // In bits per second;
+const unsigned long BAUD_RATE = 9600; // In bits per second;
 
 // Engine is considered off if it has RPM less than the minimum RPM.
 const int SHUTOFF_RPM = minRPM;
