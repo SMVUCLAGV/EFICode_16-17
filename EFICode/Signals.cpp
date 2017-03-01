@@ -45,8 +45,14 @@ bool Controller::getCommand() {
         break;
       case 4: //Update Arduino AFR Table
         {
+          long loopStartTime = millis();
           while(Serial.available() < 7)
-          {;}
+          {
+            if (millis() - loopStartTime > 2)
+            {
+              return false;
+            }
+          }
           // The next byte in the serial buffer is expected to be a row index (starts at (0,0))
           byte rowNum = Serial.read();
           // The next byte in the serial buffer is expected to be a column index (starts at (0,0))
@@ -89,8 +95,14 @@ bool Controller::getCommand() {
         break;
       case 5: //Update DAQ AFR Table
         {
+          long loopStartTime = millis();
           while(Serial.available() < 2)
-          {;}
+          {
+            if (millis() - loopStartTime > 2)
+            {
+              return false;
+            }
+          }
           // The next byte is the row number being asked for by the DAQ system.
           byte rowNum = Serial.read();
           // The next byte is the column number being asked for by the DAQ system.
