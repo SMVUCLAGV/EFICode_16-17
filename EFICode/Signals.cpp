@@ -15,7 +15,7 @@ bool Controller::getCommand() {
       // Set the first byte of the acknowledgement message to the value of the signal ID.
       acknowledgement[0] = id;
       // Set the last four bytes of the acknowledgement message to the value of ACKNOWLEDGEMENT_END_VAL.
-      ((unsigned int*)(&acknowledgement[1]))[0] = ACKNOWLEDGEMENT_END_VAL;
+      ((unsigned long*)(&acknowledgement[1]))[0] = ACKNOWLEDGEMENT_END_VAL;
       case 0: //Arduino Reset
       {
         // Confirm reception of the message.
@@ -45,10 +45,14 @@ bool Controller::getCommand() {
         break;
       case 4: //Update Arduino AFR Table
         {
+          while(Serial.available() < 8)
+          {;}
           // The next byte in the serial buffer is expected to be a row index (starts at (0,0))
           byte rowNum = Serial.read();
           // The next byte in the serial buffer is expected to be a column index (starts at (0,0))
           byte colNum = Serial.read();
+          // Throw out alignment byte
+          Serial.read();
           // Allocate space for 4 bytes and interpret them as a double.
           double val;
           // The next 4 bytes are expected to be a 4 byte float or double.
@@ -67,7 +71,7 @@ bool Controller::getCommand() {
             // Calculate a base pulse time for the AFR table value that was changed.
             calculateBasePulseTime(true, rowNum, colNum);
             // Allocate space for the special acknowledgement that will be sent back to the DAQ system.
-            byte rowColAcknowledgement[7];
+            byte rowColAcknowledgement[8];
             // The first byte is the id
             rowColAcknowledgement[0] = id;
             // The next byte is the row number
@@ -75,9 +79,9 @@ bool Controller::getCommand() {
             // The next byte is the column number
             rowColAcknowledgement[2] = colNum;
             // The next 4 bytes are the ACKNOWLEDGEMENT_END_VAL unsigned int.
-            ((unsigned int*)(&rowColAcknowledgement[3]))[0] = ACKNOWLEDGEMENT_END_VAL;
+            ((unsigned long*)(&rowColAcknowledgement[4]))[0] = ACKNOWLEDGEMENT_END_VAL;
             // Send the acknowledgement out.
-            Serial.write(rowColAcknowledgement,7);
+            Serial.write(rowColAcknowledgement,8);
             return true;
           }
           return false;
@@ -85,6 +89,8 @@ bool Controller::getCommand() {
         break;
       case 5: //Update DAQ AFR Table
         {
+          while(Serial.available() < 2)
+          {;}
           // The next byte is the row number being asked for by the DAQ system.
           byte rowNum = Serial.read();
           // The next byte is the column number being asked for by the DAQ system.
@@ -96,18 +102,18 @@ bool Controller::getCommand() {
             // Save the requested value.
             double requestedVal = fuelRatioTable[rowNum][colNum];
             // Send the requested value to the DAQ system.
-            byte returnMsg[11];
+            unsigned char returnMsg[12];
             returnMsg[0] = 5;
             returnMsg[1] = rowNum;
             returnMsg[2] = colNum;
-            ((double*)(&returnMsg[3]))[0] = requestedVal;
-            ((unsigned int*)(&returnMsg[7]))[0] = ACKNOWLEDGEMENT_END_VAL;
+            ((double*)(&returnMsg[4]))[0] = requestedVal;
+            ((unsigned long*)(&returnMsg[8]))[0] = ACKNOWLEDGEMENT_END_VAL;
             //Serial.println(String("5")+","+
             //String(rowNum)+","+
             //String(colNum)+","+
             //String(requestedVal)+","+
             //String(ACKNOWLEDGEMENT_END_VAL));
-            Serial.write((char*) &returnMsg, 11);
+            Serial.write(returnMsg, 12);
             return true;
           }
           return false;
