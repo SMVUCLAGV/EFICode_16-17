@@ -45,7 +45,7 @@ bool Controller::getCommand() {
         break;
       case 4: //Update Arduino AFR Table
         {
-          while(Serial.available() < 8)
+          while(Serial.available() < 7)
           {;}
           // The next byte in the serial buffer is expected to be a row index (starts at (0,0))
           byte rowNum = Serial.read();
