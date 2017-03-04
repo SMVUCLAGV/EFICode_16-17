@@ -28,9 +28,9 @@ Controller::Controller() {
 }
 
 bool Controller::readSensors() {
-    TPS = getTPS();
+    TPS = constrain(getTPS(),MIN_TPS,MAX_TPS);
     ECT = getTemp(ECT_Pin);
-    IAT = getTemp(IAT_Pin);
+    IAT = constrain(getTemp(IAT_Pin),MIN_IAT,MAX_IAT);
     MAP = getMAP();
 }
 
@@ -43,7 +43,7 @@ void Controller::initializeParameters() {
     minTimePerSampleReported = 1E3;  //In microseconds
 
     // Number of revolutions that must pass before recalculating RPM.
-    revsPerCalc = 2;
+    revsPerCalc = 0;
     
     // Initialize AFR values.
     AFR = 0;
@@ -60,10 +60,11 @@ void Controller::initializeParameters() {
 
     // Used to determine the amount of fuel used.
     totalPulseTime = 0;
+    lastPulse = 0;
 
     // True   -> Start with data reporting on.
     // False  -> Start with data reporting off.
-    currentlySendingData = false;
+    currentlySendingData = true;
 
     // Fill in fuel ratio table with 14.7 across the board.
     // Should be replaced with code that gets the last saved table from memory!
@@ -89,21 +90,21 @@ void Controller::countRevolution() {
   
   // Increment the number of revolutions 
   revolutions++;
+  totalRevolutions++;
   
   //Inject on every second revolution because this is a 4 stroke engine
-  if (revolutions % 2 == 1) {
+  if (totalRevolutions % 2 == 1) {
     pulseOn();
   }
 }
 
 void Controller::enableINJ() {
-  Timer3.attachInterrupt(handle_pulseTimerTimeout, injectorPulseTime);
   INJisDisabled = false;
 }
 
 void Controller::disableINJ() {
-  Timer3.detachInterrupt();
-  pulseOff();
+  Timer3.stop();
+  digitalWrite(INJ_Pin, LOW);
   INJisDisabled = true;
 }
 
@@ -111,25 +112,26 @@ void Controller::pulseOn() {
   if (!INJisDisabled) {
     Timer3.setPeriod(injectorPulseTime);
     digitalWrite(INJ_Pin, HIGH);
-    Timer3.restart();
+    Timer3.start();
+    lastPulse = micros();
   }
 }
 
 void Controller::pulseOff() {
   // When it's time to turn the injector off, follow these steps and turn it off
   digitalWrite(INJ_Pin, LOW);
+  Timer3.stop();
 
   // Save the amount of time the injector pin spent HIGH.
-  totalPulseTime += (micros() - lastRPMCalcTime) / 1E6;
+  totalPulseTime += (micros() - lastPulse);
 }
 
 void Controller::updateRPM() {
   if (revolutions >= revsPerCalc) {
-    //Calculate RPM each cycle
     RPM = getRPM(micros() - lastRPMCalcTime, revolutions);
-    totalRevolutions += revolutions;
-    revolutions = 0;
     lastRPMCalcTime = micros();
+    revolutions = 0;
+    
     // Should also dynamically change revsPerCalc. At lower RPM
     // the revsPerCalc should be lower but at higher RPM it should be higher.
   }
@@ -204,11 +206,11 @@ void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
   for (int x = 0; x < numTableRows; x++) {
     for (int y = 0; y < numTableCols; y++) {
       // Cover the range of pressure values from min - max inclusive.
-      int pressure = map(row, 0, numTableRows - 1, minMAP, maxMAP);
+      int pressure = map(x, 0, numTableRows - 1, minMAP, maxMAP);
 
       // Compute a base pulse time in units of microseconds * Kelvin. Temperature will be
       // divided on the fly to get the actual pulse time used.
-      injectorBasePulseTimes[x][y] = openTime + 1000000 * pressure * injectionConstant /
+      injectorBasePulseTimes[x][y] = openTime + 1E6 * pressure * injectionConstant /
                                      (fuelRatioTable[x][y] * injectorFuelRate);
     }
   }
@@ -216,10 +218,10 @@ void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
 
 void Controller::checkEngineState() {
   if (detectEngineOff()) {
-    totalRevolutions += revolutions;
-    revolutions = 0;
-    RPM = 0;
-    lastRPMCalcTime = micros();
+    //totalRevolutions += revolutions;
+    //revolutions = 0;
+    //RPM = 0;
+    //lastRPMCalcTime = micros();
     if (!INJisDisabled) {
       disableINJ();
     }

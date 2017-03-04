@@ -11,21 +11,26 @@ void setup() {
   c = new Controller();
 
   // Update all sensor values to current values.
+  c->updateRPM();
   c->readSensors();
+  c->lookupPulseTime();
 
   // Attach rpm detector to revolution counter interrupt.
   attachInterrupt(digitalPinToInterrupt(HES_Pin), countRev, FALLING);
 
-  // Initialize pulseOff timer, but do not attach the interrupt until it is necessary.
-  Timer3.initialize();
+  // Initialize pulseOff timer.
+  Timer3.initialize(1000000);
+
+  // Attach the interrupt for INJ pulse modulation.
+  Timer3.attachInterrupt(handle_pulseTimerTimeout);
+
+  // Immediately stop the timer.
+  Timer3.stop();
 }
 
 void loop() {
   //Update RPM if needed.
   c->updateRPM();
- 
-  // Checks the status of the engine. e.g., detects whether the engine is on or off.
-  c->checkEngineState();
 
   // Update Controller with most recent sensor values.
   c->readSensors();
@@ -35,6 +40,9 @@ void loop() {
 
   // Adjust injectorBasePulseTime[][] Values by using feedback loop with O2 sensor.
   c->AFRFeedback();
+ 
+  // Checks the status of the engine. e.g., detects whether the engine is on or off.
+  c->checkEngineState();
 
   // Attempt to send sensor data to the DAQ system. Will only occur if the
   // currentlySendingData flag is set to true. This flag is set by sending 

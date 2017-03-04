@@ -109,7 +109,8 @@ private:
   int revolutions;
   unsigned long totalRevolutions;
   
-  long totalPulseTime;
+  unsigned long totalPulseTime;
+  unsigned long lastPulse;
   long lastRPMCalcTime;
   long injectorPulseTime;
   int delayCount;

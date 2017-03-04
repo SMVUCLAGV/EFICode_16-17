@@ -48,7 +48,7 @@ bool Controller::getCommand() {
           long loopStartTime = millis();
           while(Serial.available() < 7)
           {
-            if (millis() - loopStartTime > 2)
+            if (millis() - loopStartTime > 20)
             {
               return false;
             }
@@ -98,7 +98,7 @@ bool Controller::getCommand() {
           long loopStartTime = millis();
           while(Serial.available() < 2)
           {
-            if (millis() - loopStartTime > 2)
+            if (millis() - loopStartTime > 20)
             {
               return false;
             }
