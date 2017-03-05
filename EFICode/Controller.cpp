@@ -30,7 +30,7 @@ Controller::Controller() {
 bool Controller::readSensors() {
     TPS = constrain(getTPS(),MIN_TPS,MAX_TPS);
     ECT = getTemp(ECT_Pin);
-    IAT = constrain(getTemp(IAT_Pin),MIN_IAT,MAX_IAT);
+    IAT = getTemp(IAT_Pin);
     MAP = getMAP();
 }
 
@@ -38,16 +38,18 @@ void Controller::initializeParameters() {
     // Start at zero revolutions.
     revolutions = 0;
     totalRevolutions = 0;
+    magnetsHit = 0;
 
     // Set the max speed at which data is reported
     minTimePerSampleReported = 1E3;  //In microseconds
 
     // Number of revolutions that must pass before recalculating RPM.
-    revsPerCalc = 0;
+    revsPerCalc = 5;
     
     // Initialize AFR values.
     AFR = 0;
     AFRVolts = 0;
+    startupModifier = 1.0;
     
     // Initialize MAP and RPM indicies to zero.
     mapIndex = 0;
@@ -66,15 +68,6 @@ void Controller::initializeParameters() {
     // False  -> Start with data reporting off.
     currentlySendingData = true;
 
-    // Fill in fuel ratio table with 14.7 across the board.
-    // Should be replaced with code that gets the last saved table from memory!
-    // 14.7 is the mass ratio of air to fuel for approximately stoichiometric combustion.
-    for (int x = 0; x < numTableRows; x++) {
-        for (int y = 0; y < numTableCols; y++) {
-        fuelRatioTable[x][y] = 14.7;
-        }
-    }
-
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
     calculateBasePulseTime(false, 0, 0);
@@ -83,18 +76,24 @@ void Controller::initializeParameters() {
 }
 
 void Controller::countRevolution() {
-  // Enable the injector if it is disabled.
-  if (INJisDisabled) {
-    enableINJ();
+  if (magnetsHit >= numMagnets - 1) {
+      // Enable the injector if it is disabled.
+      if (INJisDisabled) {
+        enableINJ();
+      }
+      
+      // Increment the number of revolutions 
+      revolutions++;
+      totalRevolutions++;
+      
+      //Inject on every second revolution because this is a 4 stroke engine
+      if (totalRevolutions % 2 == 1) {
+        pulseOn();
+      }
+      magnetsHit = 0;
   }
-  
-  // Increment the number of revolutions 
-  revolutions++;
-  totalRevolutions++;
-  
-  //Inject on every second revolution because this is a 4 stroke engine
-  if (totalRevolutions % 2 == 1) {
-    pulseOn();
+  else {
+      magnetsHit++;
   }
 }
 
@@ -113,7 +112,7 @@ void Controller::pulseOn() {
     Timer3.setPeriod(injectorPulseTime);
     digitalWrite(INJ_Pin, HIGH);
     Timer3.start();
-    lastPulse = micros();
+    //lastPulse = micros();
   }
 }
 
@@ -123,7 +122,8 @@ void Controller::pulseOff() {
   Timer3.stop();
 
   // Save the amount of time the injector pin spent HIGH.
-  totalPulseTime += (micros() - lastPulse);
+  //totalPulseTime += (micros() - lastPulse);
+  totalPulseTime += injectorPulseTime;
 }
 
 void Controller::updateRPM() {
@@ -194,34 +194,36 @@ void Controller::AFRFeedback() {
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
   if (singleVal) {
     // Cover the range of pressure values from min - max inclusive.
-    int pressure = map(row, 0, numTableRows - 1, minMAP, maxMAP);
+    unsigned long pressure = map(row, 0, numTableRows - 1, minMAP, maxMAP);
 
     // Compute a base pulse time in units of microseconds * Kelvin. Temperature will be
     // divided on the fly to get the actual pulse time used.
-    injectorBasePulseTimes[row][col] = openTime + 1000000 * pressure * injectionConstant /
-                                       (fuelRatioTable[row][col] * injectorFuelRate);
+    injectorBasePulseTimes[row][col] = 1E6 * pressure * injectionConstant /
+                                     (fuelRatioTable[row][col]);
     return;
   }
 
   for (int x = 0; x < numTableRows; x++) {
     for (int y = 0; y < numTableCols; y++) {
       // Cover the range of pressure values from min - max inclusive.
-      int pressure = map(x, 0, numTableRows - 1, minMAP, maxMAP);
+      unsigned long pressure = map(x, 0, numTableRows - 1, minMAP, maxMAP);
 
       // Compute a base pulse time in units of microseconds * Kelvin. Temperature will be
       // divided on the fly to get the actual pulse time used.
-      injectorBasePulseTimes[x][y] = openTime + 1E6 * pressure * injectionConstant /
-                                     (fuelRatioTable[x][y] * injectorFuelRate);
+      injectorBasePulseTimes[x][y] = 1E6 * pressure * injectionConstant /
+                                     (fuelRatioTable[x][y]);
     }
   }
 }
 
 void Controller::checkEngineState() {
   if (detectEngineOff()) {
-    //totalRevolutions += revolutions;
-    //revolutions = 0;
-    //RPM = 0;
-    //lastRPMCalcTime = micros();
+    if (revsPerCalc > 0)
+    {
+        revolutions = 0;
+        RPM = 0;
+        lastRPMCalcTime = micros();
+    }
     if (!INJisDisabled) {
       disableINJ();
     }

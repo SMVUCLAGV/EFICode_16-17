@@ -27,15 +27,22 @@ const int SP4 = 37;
 const double voltageConversion = .0049;
 
 // Constants for calculating estimated injection times.
-const double injectionConstant  = .000172064;   //volume
-const double injectorFuelRate   = 2.1333333;    //grams per second
+const double engineDisplacement = 49.4E-6;    //meters^3
+const double airSpecificGasConstant = 286.9;   //Joules / (kilograms * Kelvin)
+const double injectorFuelRate   = 2.13333E-3;    //kilograms per second
+const double injectionConstant  = 
+              engineDisplacement / (airSpecificGasConstant * injectorFuelRate);
+              // meters^2 / (kilograms * microseconds * Kelvin) 
 const int openTime              = 350;          // Estimated amount of time for injector to open in microseconds.
+
+// Number of magnets the hall effect sensor must detect for one full revolution
+const int numMagnets = 2;
 
 // Define the range of values for RPM and Manifold Air Pressure
 const int maxRPM = 8000;    // In revolutions / minute
 const int minRPM = 120;     // In revolutions / minute
-const int maxMAP = 120;     // In kPa
-const int minMAP = 20;      // In kPa
+const unsigned long maxMAP = 120000;     // In Pa
+const unsigned long minMAP = 20000;      // In Pa
 
 // Define the number of rows and number of columns for the AFR Table.
 const int numTableRows = 11;

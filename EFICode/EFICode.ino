@@ -13,7 +13,6 @@ void setup() {
   // Update all sensor values to current values.
   c->updateRPM();
   c->readSensors();
-  c->lookupPulseTime();
 
   // Attach rpm detector to revolution counter interrupt.
   attachInterrupt(digitalPinToInterrupt(HES_Pin), countRev, FALLING);

@@ -29,8 +29,8 @@ const double tempGamma = 2.18539E1;   // Coefficient of T^0 term.
 
 // Coefficients resulting from combining alpha and beta in an efficient way.
 const double tempA = -tempBeta/(2*tempAlpha);
-const double tempB = -1/(4*pow(tempAlpha,1.5));
-const double tempC = pow((tempBeta)/(2*sqrt(tempAlpha)),2);
+const double tempB = 1/(pow(tempAlpha,2));
+const double tempC = pow(tempBeta,2)/(2*tempAlpha);
 
 // The input voltage to the voltage divider consisting of a 1k resistor and the
 // thermistor in series.
@@ -54,7 +54,8 @@ double Controller::getTemp(int pin) {
   // Compute temperature from a curve fit to the exponential function with a quadratic
   // power with respect to the temperature.
   double x = log((tempInputVal-mval)/(mval));
-  return tempA + tempB*sqrt(tempC-(tempGamma-x));
+  //return tempA - tempB * sqrt(tempC - (tempGamma - x));
+  return ((-tempBeta)-sqrt(pow(tempBeta,2)-4*tempAlpha*(tempGamma-x)))/(2 * tempAlpha);
 }
 
 //MAP Measurement
