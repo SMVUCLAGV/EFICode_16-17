@@ -90,7 +90,8 @@ void Controller::countRevolution() {
   
   // Increment the number of revolutions 
   revolutions++;
-  totalRevolutions++;
+  totalRevolutions++; //Total revolutions is only modified and accessed within this function so 
+  //Lock guards seem unneccessary
   
   //Inject on every second revolution because this is a 4 stroke engine
   if (totalRevolutions % 2 == 1) {
@@ -105,16 +106,21 @@ void Controller::enableINJ() {
 void Controller::disableINJ() {
   Timer3.stop();
   digitalWrite(INJ_Pin, LOW);
+  noInterrupts();
   INJisDisabled = true;
+  interrupts();
 }
 
 void Controller::pulseOn() {
-  if (!INJisDisabled) {
+ // if (!INJisDisabled) { Removed because when pulseOn() is called, shouldn't the injector always inject fuel, otherwise there is possibility
+ //of injector not working every second revolution
     Timer3.setPeriod(injectorPulseTime);
     digitalWrite(INJ_Pin, HIGH);
     Timer3.start();
-    lastPulse = micros();
-  }
+    noInterrupts(); //To ensure when lastPulse is used in pulseOFF(), it isn't read as lastPulse is getting modified
+    lastPulse = micros(); //Race Conditions Problem
+    interrupts();
+//  }
 }
 
 void Controller::pulseOff() {
@@ -123,14 +129,21 @@ void Controller::pulseOff() {
   Timer3.stop();
 
   // Save the amount of time the injector pin spent HIGH.
-  totalPulseTime += (micros() - lastPulse);
+    totalPulseTime += (micros() - lastPulse);
 }
 
 void Controller::updateRPM() {
-  if (revolutions >= revsPerCalc) {
-    RPM = getRPM(micros() - lastRPMCalcTime, revolutions);
+  noInterrupts();
+  int tempRev = revolutions; //Prevents revolutions being read while it is being modified by the 
+  //countRevolution() function associated with the interrupt
+  interrupts();
+  if (tempRev >= revsPerCalc) { 
+    RPM = getRPM(micros() - lastRPMCalcTime, tempRev); //Uses the previously determined value of revolutions to reduce
+    //amount of noInterrupts() calls
     lastRPMCalcTime = micros();
-    revolutions = 0;
+    noInterrupts(); //To ensure that the interrupt of countRev doesn't get lost in case of bad timing of threads
+    revolutions = 0; //Race Conditions Modification Problem
+    interrupts();
     
     // Should also dynamically change revsPerCalc. At lower RPM
     // the revsPerCalc should be lower but at higher RPM it should be higher.

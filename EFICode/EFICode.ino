@@ -16,14 +16,18 @@ void setup() {
   c->lookupPulseTime();
 
   // Attach rpm detector to revolution counter interrupt.
+  attachInterrupt(digitalPinToInterrupt(HES_Pin), dummy, FALLING);
+  detachInterrupt(digitalPinToInterrupt(HES_Pin));
   attachInterrupt(digitalPinToInterrupt(HES_Pin), countRev, FALLING);
 
   // Initialize pulseOff timer.
   Timer3.initialize(1000000);
 
   // Attach the interrupt for INJ pulse modulation.
+  Timer3.attachInterrupt(dummy);
+  Timer3.detachInterrupt();
   Timer3.attachInterrupt(handle_pulseTimerTimeout);
-
+  
   // Immediately stop the timer.
   Timer3.stop();
 }
@@ -60,4 +64,6 @@ void countRev() {
 void handle_pulseTimerTimeout() {
   c->pulseOff();
 }
+
+void dummy() {}
 
