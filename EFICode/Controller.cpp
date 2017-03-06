@@ -115,7 +115,7 @@ void Controller::pulseOn() {
     Timer3.setPeriod(injectorPulseTime);
     digitalWrite(INJ_Pin, HIGH);
     Timer3.start();
-    noInterrupts(); //To ensure when lastPulse is used in pulseOFF(), it isn't read as lastPulse is getting modified
+    noInterrupts(); //To ensure when lastPulse is used in pulseOff(), it isn't read as lastPulse is getting modified
     lastPulse = micros(); //Race Conditions Problem
     interrupts();
 }
@@ -163,7 +163,7 @@ void Controller::lookupPulseTime() {
     double scaledMAP = map(MAP, minMAP, maxMAP, 0, maxTableRowIndex); //number from 0 - numTableRows-1
     double scaledRPM = map(RPM, minRPM, maxRPM, 0, maxTableColIndex); //number from 0 - numTableCols-1
 
-    // Clip out of bounds values to 0 and 1.
+    // Clip out of bounds to the min or max value, whichever is closer.
     scaledMAP = constrain(scaledMAP, 0, maxTableRowIndex);
     scaledRPM = constrain(scaledRPM, 0, maxTableColIndex);
 
@@ -175,11 +175,11 @@ void Controller::lookupPulseTime() {
     // the base pulse time and then divide by the temperature.
     if (rpmIndex < maxTableColIndex && mapIndex < maxTableRowIndex) {
         // Interpolation case
-        injectorPulseTime = interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
+        injectorPulseTime = openTime + interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
     }
     else {
         // Clipped case
-        injectorPulseTime = injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
+        injectorPulseTime = openTime + injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
     }
 }
 

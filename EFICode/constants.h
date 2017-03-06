@@ -6,6 +6,7 @@ void countRev();
 void handle_pulseTimerTimeout();
 void enableINJ();
 void disableINJ();
+void dummy();
 
 // Define all the pin numbers
 const int HES_Pin = 19;
@@ -59,7 +60,7 @@ const int MIN_IAT = 200;  // In Kelvin
 const int MAX_IAT = 500;  // In Kelvin
 
 // Define the range of values that the Throttle Position value can take.
-const int MIN_TPS = 1;
+const int MIN_TPS = 0;
 const int MAX_TPS = 1;
 
 // Define the BAUD_RATE to communicate with.

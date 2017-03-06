@@ -15,6 +15,11 @@ void setup() {
   c->readSensors();
 
   // Attach rpm detector to revolution counter interrupt.
+  // For some reason, the internal interrupt flags can end up defaulting
+  // to a triggered state before they are attached. This causes them
+  // to trigger once right when they are attached. Our current workaround
+  // is to attach the interrupt to a dummy function first that triggers
+  // if the interrupt is already set. Then, it is safe to attach the normal interrupt.
   attachInterrupt(digitalPinToInterrupt(HES_Pin), dummy, FALLING);
   detachInterrupt(digitalPinToInterrupt(HES_Pin));
   attachInterrupt(digitalPinToInterrupt(HES_Pin), countRev, FALLING);
@@ -23,6 +28,11 @@ void setup() {
   Timer3.initialize(1000000);
 
   // Attach the interrupt for INJ pulse modulation.
+  // For some reason, the internal interrupt flags can end up defaulting
+  // to a triggered state before they are attached. This causes them
+  // to trigger once right when they are attached. Our current workaround
+  // is to attach the interrupt to a dummy function first that triggers
+  // if the interrupt is already set. Then, it is safe to attach the normal interrupt.
   Timer3.attachInterrupt(dummy);
   Timer3.detachInterrupt();
   Timer3.attachInterrupt(handle_pulseTimerTimeout);
