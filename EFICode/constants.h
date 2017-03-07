@@ -14,7 +14,7 @@ const int TPS_Pin = 2;
 const int ECT_Pin = 1;
 const int MAP_Pin = 5;
 const int OIN1_Pin = 3;
-const int OIN2_Pin = 3;
+const int OIN2_Pin = 4;
 const int IAT_Pin = 0;
 const int INJ_Pin = 45;
 const int FP_Pin = 47;
@@ -25,7 +25,7 @@ const int SP3 = 39;
 const int SP4 = 37;
 
 // Multiple by this number to convert analog readings to voltages.
-const double voltageConversion = .0049;
+const double voltageConversion = 5.0 / 1023;
 
 // Constants for calculating estimated injection times.
 const double engineDisplacement = 49.4E-6;    //meters^3
@@ -35,6 +35,8 @@ const double injectionConstant  =
               engineDisplacement / (airSpecificGasConstant * injectorFuelRate);
               // meters^2 / (kilograms * microseconds * Kelvin) 
 const int openTime              = 350;          // Estimated amount of time for injector to open in microseconds.
+
+// Controls the total number of revolutions 
 
 // Number of magnets the hall effect sensor must detect for one full revolution
 const int numMagnets = 2;
@@ -52,8 +54,8 @@ const int numTableCols = 16;
 const int maxTableColIndex = numTableCols - 1;
 
 // Define the range of values that an AFR table value can take.
-const int MIN_AFR = 10;
-const int MAX_AFR = 17;
+const int MIN_AFR = 8;
+const int MAX_AFR = 18;
 
 // Define the range of values that the Intake air temperature can take.
 const int MIN_IAT = 200;  // In Kelvin

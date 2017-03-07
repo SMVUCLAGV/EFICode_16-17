@@ -108,6 +108,7 @@ private:
   int revsPerCalc;
   int revolutions;
   unsigned long totalRevolutions;
+  unsigned long startingRevolutions;
   
   unsigned long totalPulseTime;
   unsigned long lastPulse;

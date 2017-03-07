@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 #define ACKNOWLEDGEMENT_END_VAL 0x80000002
+#define timeoutDuration 100
 
 bool Controller::getCommand() {
   //Check if there is a command in serial, if so, grab it and figure out what function to call
@@ -48,7 +49,7 @@ bool Controller::getCommand() {
           long loopStartTime = millis();
           while(Serial.available() < 7)
           {
-            if (millis() - loopStartTime > 20)
+            if (millis() - loopStartTime > timeoutDuration)
             {
               return false;
             }
@@ -98,7 +99,7 @@ bool Controller::getCommand() {
           long loopStartTime = millis();
           while(Serial.available() < 2)
           {
-            if (millis() - loopStartTime > 20)
+            if (millis() - loopStartTime > timeoutDuration)
             {
               return false;
             }

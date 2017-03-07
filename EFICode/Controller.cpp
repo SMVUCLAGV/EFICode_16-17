@@ -85,6 +85,7 @@ void Controller::countRevolution() {
       // Increment the number of revolutions 
       revolutions++;
       totalRevolutions++;
+      startingRevolutions++;
       //Lock guards seem unneccessary
       
       //Inject on every second revolution because this is a 4 stroke engine
@@ -181,6 +182,11 @@ void Controller::lookupPulseTime() {
         // Clipped case
         injectorPulseTime = openTime + injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
     }
+    // Add extra fuel for starting
+    if (startingRevolutions <= numRevsForStart)
+    {
+        injectorPulseTime *= startupModifier;
+    }
 }
 
 // IF O2 SENSOR IS ERRORING OR NOT READY, THE ANALOG OUTPUT IS SET TO BE EQUAL
@@ -189,7 +195,7 @@ void Controller::lookupPulseTime() {
 // FEEDBACK LOOP WILL DO NOTHING!
 void Controller::AFRFeedback() {
     getAFR();   // Rename to "updateAFR"
-    if (AFRVolts < 0.05) {
+    if (AFRVolts < 0.05 || detectEngineOff()) {
         return;
     }
     
@@ -231,6 +237,7 @@ void Controller::checkEngineState() {
     if (revsPerCalc > 0)
     {
         revolutions = 0;
+        startingRevolutions = 0;
         RPM = 0;
         lastRPMCalcTime = micros();
     }

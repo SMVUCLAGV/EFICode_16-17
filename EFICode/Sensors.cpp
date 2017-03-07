@@ -59,8 +59,9 @@ double Controller::getTemp(int pin) {
 }
 
 //MAP Measurement
-const double MAPConversion = 92.432; // = oldMAPConversion * voltageConversion * scalingFactor
-const double MAPOffset = 20000; // = oldMAPOffset * scalingFactor
+const double MAPSlope = (20000 - 103000) / (0.5 - 4.9); // (y1 - y2) / (x1 - x2) Pascals / Volt
+const double MAPOffset = ((-4.9 * 20000) + (0.5 * 103000)) / (0.5 - 4.9); // = Pascals
+const double MAPConversion = MAPSlope * voltageConversion; // Pascals / 1023
 
 double Controller::getMAP() {
   //Calculates MAP, outputs in Pa
@@ -91,9 +92,9 @@ double Controller::getAFR () {
   AFR = AFRVolts * AO1slope + AO1minAFR;
   
   // If AFR is close to stoich, use narrow band output with greater precision.
-  //if (AFR <= 15 && AFR >= 14) {
-  //    AFR = voltageConversion * analogRead(OIN2_Pin) * AO2slope + AO2minAFR;
-  //}
+  if (AFR <= 15 && AFR >= 14) {
+      AFR = voltageConversion * analogRead(OIN2_Pin) * AO2slope + AO2minAFR;
+  }
   
   return AFR;
 }
