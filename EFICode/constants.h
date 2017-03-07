@@ -37,6 +37,7 @@ const double injectionConstant  =
 const int openTime              = 350;          // Estimated amount of time for injector to open in microseconds.
 
 // Controls the total number of revolutions 
+const int numRevsForStart = 25;
 
 // Number of magnets the hall effect sensor must detect for one full revolution
 const int numMagnets = 2;
