@@ -9,14 +9,15 @@ bool Controller::getCommand() {
   //Check if there is a command in serial, if so, grab it and figure out what function to call
   if (Serial.available() >= 1) {
     // Receive the signal ID from the first byte in the incoming message.
-    char id = Serial.read();
+    byte id = Serial.read();
+    //id = id - '0';
+    // Allocate space for the general acknowledgement message.
+    byte acknowledgement [8];
+    // Set the first byte of the acknowledgement message to the value of the signal ID.
+    acknowledgement[0] = id;
+    // Set the last four bytes of the acknowledgement message to the value of ACKNOWLEDGEMENT_END_VAL.
+    ((unsigned long*)(&acknowledgement[1]))[0] = ACKNOWLEDGEMENT_END_VAL;
     switch(id) {
-      // Allocate space for the general acknowledgement message.
-      byte acknowledgement [5];
-      // Set the first byte of the acknowledgement message to the value of the signal ID.
-      acknowledgement[0] = id;
-      // Set the last four bytes of the acknowledgement message to the value of ACKNOWLEDGEMENT_END_VAL.
-      ((unsigned long*)(&acknowledgement[1]))[0] = ACKNOWLEDGEMENT_END_VAL;
       case 0: //Arduino Reset
       {
         // Confirm reception of the message.

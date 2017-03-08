@@ -12,7 +12,7 @@ Controller::Controller() {
     Serial.begin(BAUD_RATE);
   
     // Initializing message
-    Serial.write("Initializing...\n");
+    //Serial.write("Initializing...\n");
   
     // Initialize parameters with their starting values.
     initializeParameters();
@@ -24,7 +24,7 @@ Controller::Controller() {
     // runDiagnostics();
   
     // Indicate ready
-    Serial.write("Ready to go!\n");
+    //Serial.write("Ready to go!\n");
 }
 
 bool Controller::readSensors() {
@@ -66,7 +66,7 @@ void Controller::initializeParameters() {
 
     // True   -> Start with data reporting on.
     // False  -> Start with data reporting off.
-    currentlySendingData = true;
+    currentlySendingData = false;
 
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
