@@ -174,19 +174,23 @@ void Controller::lookupPulseTime() {
 
     // Clip extrapolation to the value at the max index. Otherwise, perform 2D interpolation to get
     // the base pulse time and then divide by the temperature.
+    long tempPulseTime;
     if (rpmIndex < maxTableColIndex && mapIndex < maxTableRowIndex) {
         // Interpolation case
-        injectorPulseTime = openTime + interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
+        tempPulseTime = openTime + interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
     }
     else {
         // Clipped case
-        injectorPulseTime = openTime + injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
+        tempPulseTime = openTime + injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
     }
     // Add extra fuel for starting
     if (startingRevolutions <= numRevsForStart)
     {
-        injectorPulseTime *= startupModifier;
+        tempPulseTime *= startupModifier;
     }
+    noInterrupts();
+    injectorPulseTime = tempPulseTime;
+    interrupts();
 }
 
 // IF O2 SENSOR IS ERRORING OR NOT READY, THE ANALOG OUTPUT IS SET TO BE EQUAL
