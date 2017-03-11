@@ -5,6 +5,8 @@
 #define ACKNOWLEDGEMENT_END_VAL 0x80000002
 #define timeoutDuration 100
 
+const uint16_t checkSumInitial= 0xFFFF;
+
 bool Controller::getCommand() {
   //Check if there is a command in serial, if so, grab it and figure out what function to call
   if (Serial.available() >= 1) {
@@ -20,6 +22,26 @@ bool Controller::getCommand() {
     switch(id) {
       case 0: //Arduino Reset
       {
+         long loopStartTime = millis();
+          while(Serial.available() < 2)
+          {
+            if (millis() - loopStartTime > timeoutDuration)
+            {
+              return false;
+            }
+          }
+          uint16_t checkSum;
+          // The next 2 bytes are expected to be a 2 byte checkSum.
+          if (Serial.readBytes((char*) &checkSum, 2) != 2)
+          {
+            // Should send error code back in this case.
+            return false;
+          }
+          if(checkSum!=checkSumInitial-id)
+          {
+            //if checkSum doesn't match expected checkSum, not a valid command
+            return false;
+          }
         // Confirm reception of the message.
         Serial.write(acknowledgement, 5);
         // Write HIGH to the reset pin to perform a hardware reset of the controller.
@@ -28,6 +50,26 @@ bool Controller::getCommand() {
       break;
       case 1: //Start Sending Data
       {
+          long loopStartTime = millis();
+          while(Serial.available() < 2)
+          {
+            if (millis() - loopStartTime > timeoutDuration)
+            {
+              return false;
+            }
+          }
+          uint16_t checkSum;
+          // The next 2 bytes are expected to be a 2 byte checkSum.
+          if (Serial.readBytes((char*) &checkSum, 2) != 2)
+          {
+            // Should send error code back in this case.
+            return false;
+          }
+          if(checkSum!=checkSumInitial-id)
+          {
+            //if checkSum doesn't match expected checkSum, not a valid command
+            return false;
+          }
         // Send an acknowledgement message back to the DAQ system.
         Serial.write(acknowledgement, 5);
         // Begin transmitting data to the DAQ system.
@@ -36,6 +78,26 @@ bool Controller::getCommand() {
       }
       case 2: //Stop Sending Data
       {
+          long loopStartTime = millis();
+          while(Serial.available() < 2)
+          {
+            if (millis() - loopStartTime > timeoutDuration)
+            {
+              return false;
+            }
+          }
+          uint16_t checkSum;
+          // The next 2 bytes are expected to be a 2 byte checkSum.
+          if (Serial.readBytes((char*) &checkSum, 2) != 2)
+          {
+            // Should send error code back in this case.
+            return false;
+          }
+          if(checkSum!=checkSumInitial-id)
+          {
+            //if checkSum doesn't match expected checkSum, not a valid command
+            return false;
+          }
         // Send an acknowledgement message back to the DAQ system.
         Serial.write(acknowledgement, 5);
         // Stop sending data to the DAQ system.
@@ -48,7 +110,7 @@ bool Controller::getCommand() {
       case 4: //Update Arduino AFR Table
         {
           long loopStartTime = millis();
-          while(Serial.available() < 7)
+          while(Serial.available() < 9)
           {
             if (millis() - loopStartTime > timeoutDuration)
             {
@@ -67,6 +129,18 @@ bool Controller::getCommand() {
           if (Serial.readBytes((char*) &val, 4) != 4)
           {
             // Should send error code back in this case.
+            return false;
+          }
+          uint16_t checkSum;
+          if (Serial.readBytes((char*) &checkSum, 2) != 2)
+          {
+            // Should send error code back in this case.
+            return false;
+          }
+           unsigned char * valuePointer = reinterpret_cast<unsigned char *>(&val);
+          if(checkSum!= checkSumInitial - id -(rowNum<<1) - (colNum<<2) - ((uint16_t)(valuePointer[0]) << 3) - ((uint16_t)(valuePointer[1]) << 4) - ((uint16_t)(valuePointer[2]) << 5) - ((uint16_t)(valuePointer[3]) << 6))
+          {
+             //if checkSum doesn't match expected checkSum, not a valid command
             return false;
           }
           // Check to make sure the row and columns are within the table.
@@ -98,7 +172,7 @@ bool Controller::getCommand() {
       case 5: //Update DAQ AFR Table
         {
           long loopStartTime = millis();
-          while(Serial.available() < 2)
+          while(Serial.available() < 4)
           {
             if (millis() - loopStartTime > timeoutDuration)
             {
@@ -109,7 +183,20 @@ bool Controller::getCommand() {
           byte rowNum = Serial.read();
           // The next byte is the column number being asked for by the DAQ system.
           byte colNum = Serial.read();
+          //Throws away alignmentPadding
+          Serial.read();
           // Check to see if the requested row and column numbers are in the bounds of the table.
+           uint16_t checkSum;
+          if (Serial.readBytes((char*) &checkSum, 2) != 2)
+          {
+            // Should send error code back in this case.
+            return false;
+          }
+          if(checkSum!= checkSumInitial - id -(rowNum<<1) - (colNum<<2))
+          {
+             //if checkSum doesn't match expected checkSum, not a valid command
+            return false;
+          }
           if (rowNum < numTableRows && colNum < numTableCols && rowNum > 0 && colNum > 0)
           {
             //Serial.print("Received valid row and column numbers.\n");
@@ -133,56 +220,6 @@ bool Controller::getCommand() {
           return false;
         }
         break;
-      case 6: //Idle Fuel Ratio
-      {
-        double idleVal;
-        if (Serial.readBytes((byte*)&idleVal, 4) < 4) {
-          return false;
-        }
-        setIdleVal(idleVal);
-        Serial.write(acknowledgement,5);
-        break;
-      }
-      case 7: //Current Fuel Ratio
-      {
-        double currentRatio;
-        if (Serial.readBytes((byte*)&currentRatio, 4) < 4) {
-          return false;
-        }
-        setFuelRatio(currentRatio);
-        Serial.write(acknowledgement,5);
-        break;
-      }
-      case 8: //Reset Fuel Ratio
-      {
-        double resetVal;
-        if (Serial.readBytes((byte*)&resetVal, 4) < 4) {
-          return false;
-        }
-        setResetRatio(resetVal);
-        Serial.write(acknowledgement,5);
-        break;
-      }
-      case 9: //Desired RPM
-      {
-        int dRPM;
-        if (Serial.readBytes((byte*)&dRPM, 4) < 4) {
-          return false;
-        }
-        setDesiredRPM(dRPM);
-        Serial.write(acknowledgement,5);
-        break;
-      }
-      case 10: //Desired O2
-      {
-        double dAFR;
-        if (Serial.readBytes((byte*)&dAFR, 4) < 4) {
-          return false;
-        }
-        setDesiredAFR(dAFR);
-        Serial.write(acknowledgement,5);
-        break;
-      }
       default:
       break;
     }
