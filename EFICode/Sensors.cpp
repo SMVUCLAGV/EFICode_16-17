@@ -92,9 +92,9 @@ double Controller::getAFR () {
   AFR = AFRVolts * AO1slope + AO1minAFR;
   
   // If AFR is close to stoich, use narrow band output with greater precision.
-  if (AFR <= 15 && AFR >= 14) {
-      AFR = voltageConversion * analogRead(OIN2_Pin) * AO2slope + AO2minAFR;
-  }
+//  if (AFR <= 15 && AFR >= 14) {
+//      AFR = voltageConversion * analogRead(OIN2_Pin) * AO2slope + AO2minAFR;
+//  }
   
   return AFR;
 }
