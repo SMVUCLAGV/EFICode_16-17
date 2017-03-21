@@ -199,16 +199,23 @@ void Controller::lookupPulseTime() {
 // FEEDBACK LOOP WILL DO NOTHING!
 void Controller::AFRFeedback() {
     getAFR();   // Rename to "updateAFR"
-    if (AFRVolts < 0.05 || detectEngineOff()) {
+    // If the engine is off, definitely do not want the feedback loop
+    // to be active. If the O2 sensor is reading extremely high or low
+    // AFR then the reading is probably off and we do not want the feedback
+    // loop to be active based on bad values.
+    if (AFRVolts < 0.05 || detectEngineOff() || AFRVolts > 4.95) {
         return;
     }
-    
-    double deltaAFR = fuelRatioTable[mapIndex][rpmIndex] - AFR;    // Positive if rich, negative if lean.
+
+    // Stores the desired AFR value in a temporary location.
+    // Just meant for readability of code.
+    double dAFR = fuelRatioTable[mapIndex][rpmIndex];
     
     // With more data on how the engine responds to input, will be able to
     // fine tune this feedback to work more efficiently.
-    injectorBasePulseTimes[mapIndex][rpmIndex] = 
-    injectorBasePulseTimes[mapIndex][rpmIndex] * (1 - deltaAFR/AFR);
+    // The ratio of the new pulse time to the old pulse time should be
+    // equal to the ratio of the measured AFR to the desired AFR.
+    injectorBasePulseTimes[mapIndex][rpmIndex] *= (AFR/dAFR);
 }
 
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
