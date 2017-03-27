@@ -67,7 +67,7 @@ const int MIN_TPS = 0;
 const int MAX_TPS = 1;
 
 // Define the BAUD_RATE to communicate with.
-const unsigned long BAUD_RATE = 860400; // In bits per second;
+const unsigned long BAUD_RATE = 250000; // In bits per second;
 
 // Engine is considered off if it has RPM less than the minimum RPM.
 const int SHUTOFF_RPM = minRPM;
