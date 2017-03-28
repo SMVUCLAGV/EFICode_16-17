@@ -104,7 +104,6 @@ private:
   // Has a value of true if the timer3 interrupt is detached from the "pulseOff" function.
   // Also prevents the injector from pulsing on if true.
   bool INJisDisabled;
-  bool AFRFeedbackisEnabled;
 
   int revsPerCalc;
   int revolutions;
@@ -132,7 +131,7 @@ private:
   double IAT;
   double MAP;
   double AFR;
-  double AFRVolts;
+  NoiseReduced AFRVolts;
 
   double fuelRatioTable[numTableRows][numTableCols] = 
     {

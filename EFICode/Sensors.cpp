@@ -4,8 +4,6 @@
 #include "Constants.h"
 #include "math.h"
 
-const double V_in = 5.00; //Volts
-
 // timepassed is in microseconds
 int Controller::getRPM (long int timePassed, int rev) {
   return (60000000.0 * rev) / (timePassed);
@@ -36,7 +34,7 @@ const double tempC = pow(tempBeta,2)/(2*tempAlpha);
 
 // The input voltage to the voltage divider consisting of a 1k resistor and the
 // thermistor in series.
-const double tempInputVal = V_in / voltageConversion;
+const double tempInputVal = 5.00 / voltageConversion;
 const double minTempVal = 0.5 / voltageConversion;
 const double maxTempVal = 4.5 / voltageConversion;
 
@@ -61,16 +59,9 @@ double Controller::getTemp(int pin) {
 }
 
 //MAP Measurement
-
-// ECOTRONS MAP sensor calibration
-// const double MAPSlope = (20000 - 103000) / (0.5 - 4.9); // (y1 - y2) / (x1 - x2) Pascals / Volt
-// const double MAPOffset = ((-4.9 * 20000) + (0.5 * 103000)) / (0.5 - 4.9); // = Pascals
-// const double MAPConversion = MAPSlope * voltageConversion; // Pascals / 1023
-
-// MPX4115A MAP sensor calibration
-const double MAPSlope = 1E3/0.009/V_in;  //Pa / Volt
-const double MAPOffset = 1E3*0.095/0.009;   //Pa
-const double MAPConversion = MAPSlope * voltageConversion;    // Pascals / 1023
+const double MAPSlope = (20000 - 103000) / (0.5 - 4.9); // (y1 - y2) / (x1 - x2) Pascals / Volt
+const double MAPOffset = ((-4.9 * 20000) + (0.5 * 103000)) / (0.5 - 4.9); // = Pascals
+const double MAPConversion = MAPSlope * voltageConversion; // Pascals / 1023
 
 double Controller::getMAP() {
   //Calculates MAP, outputs in Pa
@@ -97,13 +88,13 @@ double Controller::getAFR () {
   // Gets Reading from O2 Sensor.
   
   // Calculate initial AFR reading.
-  AFRVolts = voltageConversion * analogRead(OIN1_Pin);
-  AFR = AFRVolts * AO1slope + AO1minAFR;
+  AFRVolts.addData(voltageConversion * analogRead(OIN1_Pin));
+  AFR = AFRVolts.getData() * AO1slope + AO1minAFR;
   
   // If AFR is close to stoich, use narrow band output with greater precision.
-//  if (AFR <= 15 && AFR >= 14) {
-//      AFR = voltageConversion * analogRead(OIN2_Pin) * AO2slope + AO2minAFR;
-//  }
+  if (AFR <= 15 && AFR >= 14) {
+      AFR = voltageConversion * analogRead(OIN2_Pin) * AO2slope + AO2minAFR;
+  }
   
   return AFR;
 }
