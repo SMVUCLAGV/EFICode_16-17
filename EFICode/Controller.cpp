@@ -12,7 +12,7 @@ Controller::Controller() {
     Serial.begin(BAUD_RATE);
   
     // Initializing message
-    Serial.write("Initializing...\n");
+    //Serial.write("Initializing...\n");
   
     // Initialize parameters with their starting values.
     initializeParameters();
@@ -24,7 +24,7 @@ Controller::Controller() {
     // runDiagnostics();
   
     // Indicate ready
-    Serial.write("Ready to go!\n");
+    //Serial.write("Ready to go!\n");
 }
 
 bool Controller::readSensors() {
@@ -66,7 +66,10 @@ void Controller::initializeParameters() {
 
     // True   -> Start with data reporting on.
     // False  -> Start with data reporting off.
-    currentlySendingData = true;
+    currentlySendingData = false;
+
+    // If false, doesn't use AFR feedback.
+    AFRFeedbackisEnabled = false;
 
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
@@ -174,19 +177,23 @@ void Controller::lookupPulseTime() {
 
     // Clip extrapolation to the value at the max index. Otherwise, perform 2D interpolation to get
     // the base pulse time and then divide by the temperature.
+    long tempPulseTime;
     if (rpmIndex < maxTableColIndex && mapIndex < maxTableRowIndex) {
         // Interpolation case
-        injectorPulseTime = openTime + interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
+        tempPulseTime = openTime + interpolate2D(mapIndex, rpmIndex, scaledMAP-mapIndex, scaledRPM-rpmIndex) / IAT;
     }
     else {
         // Clipped case
-        injectorPulseTime = openTime + injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
+        tempPulseTime = openTime + injectorBasePulseTimes[mapIndex][rpmIndex] / IAT;
     }
     // Add extra fuel for starting
     if (startingRevolutions <= numRevsForStart)
     {
-        injectorPulseTime *= startupModifier;
+        tempPulseTime *= startupModifier;
     }
+    noInterrupts();
+    injectorPulseTime = tempPulseTime;
+    interrupts();
 }
 
 // IF O2 SENSOR IS ERRORING OR NOT READY, THE ANALOG OUTPUT IS SET TO BE EQUAL
@@ -195,16 +202,26 @@ void Controller::lookupPulseTime() {
 // FEEDBACK LOOP WILL DO NOTHING!
 void Controller::AFRFeedback() {
     getAFR();   // Rename to "updateAFR"
-    if (AFRVolts < 0.05 || detectEngineOff()) {
+    // If the engine is off, definitely do not want the feedback loop
+    // to be active. If the O2 sensor is reading extremely high or low
+    // AFR then the reading is probably off and we do not want the feedback
+    // loop to be active based on bad values.
+    if (AFRVolts < 0.05 || detectEngineOff() || AFRVolts > 4.95) {
         return;
     }
-    
-    double deltaAFR = fuelRatioTable[mapIndex][rpmIndex] - AFR;    // Positive if rich, negative if lean.
+
+    // Stores the desired AFR value in a temporary location.
+    // Just meant for readability of code.
+    double dAFR = fuelRatioTable[mapIndex][rpmIndex];
     
     // With more data on how the engine responds to input, will be able to
     // fine tune this feedback to work more efficiently.
-    injectorBasePulseTimes[mapIndex][rpmIndex] = 
-    injectorBasePulseTimes[mapIndex][rpmIndex] * (1 - deltaAFR/AFR);
+    // The ratio of the new pulse time to the old pulse time should be
+    // equal to the ratio of the measured AFR to the desired AFR.
+    if (AFRFeedbackisEnabled)
+    {
+      injectorBasePulseTimes[mapIndex][rpmIndex] *= (AFR/dAFR);
+    }
 }
 
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
