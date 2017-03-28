@@ -68,6 +68,9 @@ void Controller::initializeParameters() {
     // False  -> Start with data reporting off.
     currentlySendingData = false;
 
+    // If false, doesn't use AFR feedback.
+    AFRFeedbackisEnabled = false;
+
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
     calculateBasePulseTime(false, 0, 0);
@@ -215,7 +218,10 @@ void Controller::AFRFeedback() {
     // fine tune this feedback to work more efficiently.
     // The ratio of the new pulse time to the old pulse time should be
     // equal to the ratio of the measured AFR to the desired AFR.
-    injectorBasePulseTimes[mapIndex][rpmIndex] *= (AFR/dAFR);
+    if (AFRFeedbackisEnabled)
+    {
+      injectorBasePulseTimes[mapIndex][rpmIndex] *= (AFR/dAFR);
+    }
 }
 
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
