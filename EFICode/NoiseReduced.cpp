@@ -9,15 +9,24 @@ NoiseReduced::NoiseReduced() {
   head = 0;
 }
 
-NoiseReduced::NoiseReduced(double sampleSize) {
-  len = sampleSize;
+NoiseReduced::NoiseReduced(int sampleSize) {
+  if (sampleSize < 1) {
+    len = 1;
+  } else if (sampleSize > 512) {
+    len = 512;
+  } else {
+    len = sampleSize;
+  }
   filled = 0;
   data = (double *)malloc(sizeof(double)*sampleSize);
   avg = 0;
   head = 0;
 }
 
-void NoiseReduced::addData(double input) {
+int NoiseReduced::addData(double input) {
+  if (data == NULL) {
+    return -1;
+  }
   if (filled == len) {
     avg = avg + ((input - data[head])/len);
     data[head] = input;
@@ -35,6 +44,7 @@ void NoiseReduced::addData(double input) {
     avg = sum/filled;
     head++;
   }
+  return 0;
 }
 
 double NoiseReduced::getData() {
