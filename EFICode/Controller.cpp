@@ -21,7 +21,7 @@ Controller::Controller() {
     readSensors();
   
     // Perform quick diagnostics here...
-    // runDiagnostics();
+    while (!runDiagnostics());
   
     // Indicate ready
     //Serial.write("Ready to go!\n");
@@ -45,6 +45,9 @@ void Controller::initializeParameters() {
 
     // Number of revolutions that must pass before recalculating RPM.
     revsPerCalc = 5;
+
+    // Used for RPM feedback loop
+    prevDeltaRPM = 0;
     
     // Initialize AFR values.
     AFR = 0;
@@ -70,6 +73,10 @@ void Controller::initializeParameters() {
 
     // If false, doesn't use AFR feedback.
     AFRFeedbackisEnabled = false;
+
+    // If false, doesn't use RPM feedback;
+    RPMFeedbackisEnabled = true;
+    desiredRPM = 2000;
 
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
@@ -209,19 +216,35 @@ void Controller::AFRFeedback() {
     if (AFRVolts < 0.05 || detectEngineOff() || AFRVolts > 4.95) {
         return;
     }
-
-    // Stores the desired AFR value in a temporary location.
-    // Just meant for readability of code.
-    double dAFR = fuelRatioTable[mapIndex][rpmIndex];
     
-    // With more data on how the engine responds to input, will be able to
-    // fine tune this feedback to work more efficiently.
-    // The ratio of the new pulse time to the old pulse time should be
-    // equal to the ratio of the measured AFR to the desired AFR.
     if (AFRFeedbackisEnabled)
     {
-      injectorBasePulseTimes[mapIndex][rpmIndex] *= (AFR/dAFR);
+        // Stores the desired AFR value in a temporary location.
+        // Just meant for readability of code.
+        double dAFR = fuelRatioTable[mapIndex][rpmIndex];
+        double deltaAFR = dAFR - AFR;
+        unsigned long pressure = map(mapIndex, 0, numTableRows - 1, minMAP, maxMAP);
+        
+        // With more data on how the engine responds to input, will be able to
+        // fine tune this feedback to work more efficiently.
+        // The ratio of the new pulse time to the old pulse time should be
+        // equal to the ratio of the measured AFR to the desired AFR.
+        injectorBasePulseTimes[mapIndex][rpmIndex] = 1E6 * pressure * injectionConstant / dAFR * (1 - (deltaAFR) / dAFR);
     }
+}
+
+const double K_p_RPM = 10;
+const double K_d_RPM = 3;
+void Controller::idleRPMFeedback() {
+  if (detectEngineOff())
+      return;
+
+  if (RPMFeedbackisEnabled)
+  {
+      long deltaRPM = desiredRPM - RPM;
+      injectorBasePulseTimes[mapIndex][rpmIndex] = injectorBasePulseTimes[mapIndex][rpmIndex] - K_p_RPM * deltaRPM + K_d_RPM * (prevDeltaRPM - deltaRPM);
+      prevDeltaRPM = deltaRPM;
+  }
 }
 
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {
@@ -270,5 +293,10 @@ bool Controller::detectEngineOff() {
     return true;
   }
   return false;
+}
+
+// Sensor diagnostics
+int Controller::runDiagnostics() {
+    return true;
 }
 
