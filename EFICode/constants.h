@@ -51,7 +51,7 @@ const unsigned long minMAP = 20000;      // In Pa
 // Define the number of rows and number of columns for the AFR Table.
 const int numTableRows = 11;
 const int maxTableRowIndex = numTableRows - 1;
-const int numTableCols = 10;
+const int numTableCols = 16;
 const int maxTableColIndex = numTableCols - 1;
 
 // Define the range of values that an AFR table value can take.

@@ -53,7 +53,6 @@ void loop() {
 
   // Adjust injectorBasePulseTime[][] Values by using feedback loop with O2 sensor.
   c->AFRFeedback();
-  c->idleRPMFeedback();
  
   // Checks the status of the engine. e.g., detects whether the engine is on or off.
   c->checkEngineState();
