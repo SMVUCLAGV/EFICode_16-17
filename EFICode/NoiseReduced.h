@@ -13,8 +13,8 @@
 
 struct NoiseReduced {
   public:
-    NoiseReduce();
-    NoiseReduce(int sampleSize);
+    NoiseReduced();
+    NoiseReduced(double sampleSize);
     void addData(double input);
     double getData();
     
@@ -24,6 +24,6 @@ struct NoiseReduced {
     int head;
     double *data;
     double avg;
-}
+};
 
 #endif

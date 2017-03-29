@@ -1,5 +1,5 @@
 #include "NoiseReduced.h"
-
+#include <stdlib.h>
 // Constructors
 NoiseReduced::NoiseReduced() {
   len = 10;
@@ -37,6 +37,6 @@ void NoiseReduced::addData(double input) {
   }
 }
 
-int NoiseReduced::getData() {
+double NoiseReduced::getData() {
   return avg;
 }
