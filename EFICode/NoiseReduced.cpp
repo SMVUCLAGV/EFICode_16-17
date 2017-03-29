@@ -31,9 +31,6 @@ int NoiseReduced::addData(double input) {
     avg = avg + ((input - data[head])/len);
     data[head] = input;
     head++;
-    if (head == filled) {
-      head = 0;
-    }
   } else {
     data[filled] = input;
     filled++;
@@ -43,6 +40,9 @@ int NoiseReduced::addData(double input) {
     }
     avg = sum/filled;
     head++;
+  }
+  if (head == filled) {
+    head = 0;
   }
   return 0;
 }

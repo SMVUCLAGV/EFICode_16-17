@@ -32,6 +32,7 @@ bool Controller::readSensors() {
     ECT = getTemp(ECT_Pin);
     IAT = getTemp(IAT_Pin);
     MAP = getMAP();
+    return true;
 }
 
 void Controller::initializeParameters() {
