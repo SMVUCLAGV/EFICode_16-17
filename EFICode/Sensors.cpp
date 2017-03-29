@@ -97,8 +97,8 @@ double Controller::getAFR () {
   // Gets Reading from O2 Sensor.
   
   // Calculate initial AFR reading.
-  AFRVolts = voltageConversion * analogRead(OIN1_Pin);
-  AFR = AFRVolts * AO1slope + AO1minAFR;
+  AFRVolts->addData(voltageConversion * analogRead(OIN1_Pin));
+  AFR = AFRVolts->getData() * AO1slope + AO1minAFR;
   
   // If AFR is close to stoich, use narrow band output with greater precision.
 //  if (AFR <= 15 && AFR >= 14) {

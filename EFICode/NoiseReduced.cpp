@@ -19,6 +19,10 @@ NoiseReduced::NoiseReduced(int sampleSize) {
   }
   filled = 0;
   data = (double *)malloc(sizeof(double)*sampleSize);
+  for (int i = 0; i < sampleSize; i++)
+  {
+      data[i] = 0;
+  }
   avg = 0;
   head = 0;
 }
@@ -27,21 +31,10 @@ int NoiseReduced::addData(double input) {
   if (data == NULL) {
     return -1;
   }
-  if (filled == len) {
-    avg = avg + ((input - data[head])/len);
-    data[head] = input;
-    head++;
-  } else {
-    data[filled] = input;
-    filled++;
-    int sum = 0;
-    for (int i = 0; i<filled; i++) {
-      sum += data[i];
-    }
-    avg = sum/filled;
-    head++;
-  }
-  if (head == filled) {
+  avg = avg + ((input - data[head])/len);
+  data[head] = input;
+  head++;
+  if (head == len) {
     head = 0;
   }
   return 0;

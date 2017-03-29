@@ -24,7 +24,7 @@ void Controller::sendCurrentData() {
   values.totalRevs = totalRevolutions;
   values.ECT = ECT;
   values.IAT = IAT;
-  values.MAP = MAP;
+  values.MAP = MAPAvg->getData();
   values.TPS = TPS;
   values.AFR = AFR;
   values.RPM = (long) RPM;

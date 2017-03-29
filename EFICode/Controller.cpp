@@ -3,6 +3,7 @@
 #include "Arduino.h"
 #include "Constants.h"
 #include "TimerThree.h"
+#include "NoiseReduced.h"
 
 Controller::Controller() {
     //Sets injector pin to output mode. All other pins default to input mode.
@@ -32,6 +33,7 @@ bool Controller::readSensors() {
     ECT = getTemp(ECT_Pin);
     IAT = getTemp(IAT_Pin);
     MAP = getMAP();
+    MAPAvg->addData(MAP);
     return true;
 }
 
@@ -49,8 +51,11 @@ void Controller::initializeParameters() {
     
     // Initialize AFR values.
     AFR = 0;
-    AFRVolts = 0;
+    AFRVolts = new NoiseReduced(100);
     startupModifier = 1.0;
+
+    // Initialize MAP averaging
+    MAPAvg = new NoiseReduced(100);
     
     // Initialize MAP and RPM indicies to zero.
     mapIndex = 0;
@@ -71,6 +76,13 @@ void Controller::initializeParameters() {
 
     // If false, doesn't use AFR feedback.
     AFRFeedbackisEnabled = false;
+
+    // Used for RPM feedback loop
+    prevDeltaRPM = 0;
+
+    // If false, doesn't use RPM feedback;
+    RPMFeedbackisEnabled = true;
+    desiredRPM = 2000;
 
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
@@ -165,7 +177,7 @@ long Controller::interpolate2D(int blrow, int blcol, double x, double y) {
 
 void Controller::lookupPulseTime() {
     // Map the MAP and RPM readings to the scale of 
-    double scaledMAP = map(MAP, minMAP, maxMAP, 0, maxTableRowIndex); //number from 0 - numTableRows-1
+    double scaledMAP = map(MAPAvg->getData(), minMAP, maxMAP, 0, maxTableRowIndex); //number from 0 - numTableRows-1
     double scaledRPM = map(RPM, minRPM, maxRPM, 0, maxTableColIndex); //number from 0 - numTableCols-1
 
     // Clip out of bounds to the min or max value, whichever is closer.
@@ -207,7 +219,7 @@ void Controller::AFRFeedback() {
     // to be active. If the O2 sensor is reading extremely high or low
     // AFR then the reading is probably off and we do not want the feedback
     // loop to be active based on bad values.
-    if (AFRVolts < 0.05 || detectEngineOff() || AFRVolts > 4.95) {
+    if (AFRVolts->getData() < 0.05 || detectEngineOff() || AFRVolts->getData() > 4.95) {
         return;
     }
 
@@ -221,8 +233,32 @@ void Controller::AFRFeedback() {
     // equal to the ratio of the measured AFR to the desired AFR.
     if (AFRFeedbackisEnabled)
     {
-      injectorBasePulseTimes[mapIndex][rpmIndex] *= (AFR/dAFR);
+        // Stores the desired AFR value in a temporary location.
+        // Just meant for readability of code.
+        double dAFR = fuelRatioTable[mapIndex][rpmIndex];
+        double deltaAFR = dAFR - AFR;
+        unsigned long pressure = map(mapIndex, 0, numTableRows - 1, minMAP, maxMAP);
+        
+        // With more data on how the engine responds to input, will be able to
+        // fine tune this feedback to work more efficiently.
+        // The ratio of the new pulse time to the old pulse time should be
+        // equal to the ratio of the measured AFR to the desired AFR.
+        injectorBasePulseTimes[mapIndex][rpmIndex] = 1E6 * pressure * injectionConstant / dAFR * (1 - (deltaAFR) / dAFR);
     }
+}
+
+const double K_p_RPM = 3;
+const double K_d_RPM = 0.5;
+void Controller::idleRPMFeedback() {
+  if (detectEngineOff())
+      return;
+
+  if (RPMFeedbackisEnabled)
+  {
+      long deltaRPM = desiredRPM - RPM;
+      injectorBasePulseTimes[mapIndex][rpmIndex] = injectorBasePulseTimes[mapIndex][rpmIndex] - K_p_RPM * deltaRPM + K_d_RPM * (prevDeltaRPM - deltaRPM);
+      prevDeltaRPM = deltaRPM;
+  }
 }
 
 void Controller::calculateBasePulseTime(bool singleVal, int row, int col) {

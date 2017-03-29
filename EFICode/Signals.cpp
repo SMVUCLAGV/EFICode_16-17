@@ -144,7 +144,7 @@ bool Controller::getCommand() {
             return false;
           }
           // Check to make sure the row and columns are within the table.
-          if (rowNum < numTableRows && colNum < numTableCols && rowNum > 0 && colNum > 0)
+          if (rowNum < numTableRows && colNum < numTableCols && rowNum >= 0 && colNum >= 0)
           {
             // Clip out of bounds AFR values to the valid range.
             val = constrain(val, MIN_AFR, MAX_AFR);
@@ -197,7 +197,7 @@ bool Controller::getCommand() {
              //if checkSum doesn't match expected checkSum, not a valid command
             return false;
           }
-          if (rowNum < numTableRows && colNum < numTableCols && rowNum > 0 && colNum > 0)
+          if (rowNum < numTableRows && colNum < numTableCols && rowNum >= 0 && colNum >= 0)
           {
             //Serial.print("Received valid row and column numbers.\n");
             // Save the requested value.
