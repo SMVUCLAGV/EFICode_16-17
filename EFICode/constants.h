@@ -77,48 +77,4 @@ const int SHUTOFF_RPM = minRPM;
 // (60 sec / min) * (10^6 microsecond / sec) * (SHUTOFF_RPM min / revolution) = (SHUTOFF_DELAY microseconds / revolution)
 const unsigned long int SHUTOFF_DELAY = 6E7 / SHUTOFF_RPM ; 
 
-
-
-
-
-
-
-
-// OBSOLETE! KEPT FOR REFERENCE!
-//void Controller::calculatePulseTime() {
-//  //THIS IS THE OLD METHOD OF CALCULATING PULSE TIMES
-//  //(displ * rpm)/ 2 = cm^3/s air per power stroke
-//  // ideal gas law PV = nRT
-//  // T = IAT
-//  // P = MAP
-//  // mult n by mm of air, divide by 14.7
-//  double TPSx = 1 + getTPS() - TPS;
-//  TPS = getTPS();
-//  //  if (totalRevolutions > 2 && TPS <= maxIdleTPS) {
-//  //    //RPM-based feedback loop
-//  //    if (RPM > desiredRPM) {
-//  //      idleVal = idleVal - .00001;
-//  //    }
-//  //    else if (RPM < desiredRPM) {
-//  //      idleVal = idleVal + .00001;
-//  //    }
-//  //    O2V = getOIN();
-//  //    if (O2V > desiredO2) {
-//  // +    idleVal = idleVal - .000002;
-//  // +  }
-//  // +  else if (O2V < desiredO2) {
-//  // +    idleVal = idleVal + .000002;
-//  // +  }
-//  //  }
-//  double val = getMAP() * injectionConstant / (getTemp(IAT_Pin) * fuelRatio * injectorFuelRate);
-//  //Calculate pulse time
-//  long pulseTime = 1000000 * val * startupVal * TPSx;
-//  if (TPS <= maxIdleTPS) {
-//    pulseTime *= idleVal;
-//  }
-//  totalPulseTime += pulseTime;
-//  pulseTime += openTime;
-//  injectorPulseTime = pulseTime;
-//}
-
 #endif

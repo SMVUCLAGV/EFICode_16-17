@@ -82,7 +82,6 @@ void Controller::initializeParameters() {
 
     // If false, doesn't use RPM feedback;
     RPMFeedbackisEnabled = true;
-    desiredRPM = 2000;
 
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!

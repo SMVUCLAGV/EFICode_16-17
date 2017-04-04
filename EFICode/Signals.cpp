@@ -237,38 +237,3 @@ bool Controller::stopDataTransmission() {
   currentlySendingData = false;
   return true;
 }
-
-bool Controller::setIdleVal(double val) {
-  idleVal = val;
-  return true;
-}
-
-bool Controller::setFuelRatio(double val) {
-  fuelRatio = val;
-  return true;
-}
-
-bool Controller::setDesiredRPM(int dRPM) {
-  desiredRPM = dRPM;
-  return true;
-}
-
-bool Controller::setDesiredAFR(double dAFR) {
-  desiredAFR = dAFR;
-  return true;
-}
-
-bool Controller::setResetRatio(double val) {
-  resetVal = val;
-  return true;
-}
-
-bool Controller::setFuelRatioTable(int index, double ratio) {
-  //TODO: Finish when Fuel Ratio Table is implemented
-  return true;
-}
-
-bool Controller::setStartupValue(double val) {
-  startupVal = val;
-  return true;
-}

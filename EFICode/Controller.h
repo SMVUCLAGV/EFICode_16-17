@@ -81,22 +81,6 @@ public:
   double getAFR();
 
   void initializeParameters();
-  bool setIdleVal(double val);
-  bool setFuelRatio(double val);
-  bool setDesiredRPM(int dRPM);
-  bool setDesiredAFR(double dAFR);
-  bool setFuelRatioTable(int index, double ratio); //Set the fuel ratio at the appropriate index in the fuel ratio table
-  bool setStartupValue(double val);
-  bool setResetRatio(double val);
-
-  // OBSOLETE!!
-  int desiredRPM;
-  double desiredAFR;
-  double fuelRatio; //unitless
-  double idleVal;
-  double resetVal;
-  double startupVal;
-  // END OF OBSOLETE!
 
   void AFRFeedback();
   void idleRPMFeedback();
