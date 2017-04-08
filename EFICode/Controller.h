@@ -85,10 +85,6 @@ public:
   void AFRFeedback();
   void idleRPMFeedback();
   long interpolate2D(int blrow, int blcol, double x, double y);
-
-  int calculateEEPROMIndex(int row, int col);
-  void writeTableValue(int row, int col);
-  void readTableValue(int row, int col);
   
 private:
   // Has a value of true if the timer3 interrupt is detached from the "pulseOff" function.
@@ -142,12 +138,6 @@ private:
     {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7}
     };
   long injectorBasePulseTimes[numTableRows][numTableCols];
-
-  union tableVal {
-    byte b[4];
-    double val;
-  };
-
 };
 
 #endif
