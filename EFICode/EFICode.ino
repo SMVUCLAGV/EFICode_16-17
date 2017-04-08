@@ -14,14 +14,6 @@ void setup() {
   c->updateRPM();
   c->readSensors();
 
-  //****************************************************************************
-  //IMPORTANT: RUN THIS LINE ONLY ONCE, AFTER IT IS RUN, DELETE IT FROM THE CODE
-  //****************************************************************************
-  c->saveTabletoEEPROM();
-
-  //Uncomment this line once the above line has been deleted
-  //c->readTablefromEEPROM();
-
   // Attach rpm detector to revolution counter interrupt.
   // For some reason, the internal interrupt flags can end up defaulting
   // to a triggered state before they are attached. This causes them

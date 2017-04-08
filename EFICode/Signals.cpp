@@ -150,8 +150,6 @@ bool Controller::getCommand() {
             val = constrain(val, MIN_AFR, MAX_AFR);
             // Set the AFR table value at the specified row and column to the recieved value.
             fuelRatioTable[rowNum][colNum] = val;
-            // Writes this table value to the EEPROM
-            writeTableValue(rowNum, colNum);
             // Calculate a base pulse time for the AFR table value that was changed.
             calculateBasePulseTime(true, rowNum, colNum);
             // Allocate space for the special acknowledgement that will be sent back to the DAQ system.
@@ -222,22 +220,6 @@ bool Controller::getCommand() {
           return false;
         }
         break;
-      case 6: //Load AFR Table from EEPROM
-      {
-        //TODO
-      }
-      case 7: //Save AFR Table to EEPROM
-      {
-        //TODO
-      }
-      case 8: //Load Individual Value from EEPROM
-      {
-        //TODO
-      }
-      case 9: //Save Individual Value to EEPROM
-      {
-        //TODO
-      }
       default:
       break;
     }

@@ -307,23 +307,3 @@ bool Controller::detectEngineOff() {
   }
   return false;
 }
-
-void Controller::saveTabletoEEPROM() {
-  for (int x = 0; x < numTableRows; ++x)
-  {
-    for (int y = 0; y < numTableCols; ++y)
-    {
-      writeTableValue(x,y);
-    }
-  }
-}
-
-void Controller::readTablefromEEPROM() {
-  for (int x = 0; x < numTableRows; ++x)
-  {
-    for (int y = 0; y < numTableCols; ++y)
-    {
-      readTableValue(x, y);
-    }
-  }
-}

@@ -89,8 +89,6 @@ public:
   int calculateEEPROMIndex(int row, int col);
   void writeTableValue(int row, int col);
   void readTableValue(int row, int col);
-  void saveTabletoEEPROM();
-  void readTablefromEEPROM();
   
 private:
   // Has a value of true if the timer3 interrupt is detached from the "pulseOff" function.
