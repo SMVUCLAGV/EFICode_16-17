@@ -81,7 +81,8 @@ void Controller::initializeParameters() {
     prevDeltaRPM = 0;
 
     // If false, doesn't use RPM feedback;
-    RPMFeedbackisEnabled = true;
+    RPMFeedbackisEnabled = false;
+    desiredRPM = 2000;
 
     // Calculate base pulse times from fuel ratio table. Should actually
     // store the last table used and recall it from memory here!
@@ -242,7 +243,7 @@ void Controller::AFRFeedback() {
         // fine tune this feedback to work more efficiently.
         // The ratio of the new pulse time to the old pulse time should be
         // equal to the ratio of the measured AFR to the desired AFR.
-        injectorBasePulseTimes[mapIndex][rpmIndex] = 1E6 * pressure * injectionConstant / dAFR * (1 - (deltaAFR) / dAFR);
+        injectorBasePulseTimes[mapIndex][rpmIndex] = injectorBasePulseTimes[mapIndex][rpmIndex] * (1 - (deltaAFR) / dAFR);
     }
 }
 

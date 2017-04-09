@@ -114,7 +114,8 @@ private:
 
   int magnetsHit;
   
-  int RPM;
+  long RPM;
+  long desiredRPM;
   double TPS;
   double ECT;
   double IAT;
