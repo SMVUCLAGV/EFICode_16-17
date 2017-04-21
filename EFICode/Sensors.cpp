@@ -18,7 +18,20 @@ const double TPSOffset = -.33746;
 double Controller::getTPS() {
   // Gets throttle position based off of the percentage of throttle area open
   // TODO: Create sin lookup table
-  return sin(TPSConversion * analogRead(TPS_Pin) + TPSOffset);
+  double newTPS = constrain(
+    sin(TPSConversion * analogRead(TPS_Pin) + TPSOffset),
+    MIN_TPS,
+    MAX_TPS
+    );
+  DTPS = (newTPS - TPS) / (micros() - lastThrottleMeasurementTime);
+  lastThrottleMeasurementTime = micros();
+  return newTPS;
+}
+
+double Controller::computeThrottleAdjustment() {
+  // Looks at the change in throttle position and determines a proper adjusment for the fuel input.
+  // DTPS
+  return 1 + TPS;
 }
 
 //Temperature Measurement

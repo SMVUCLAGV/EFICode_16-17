@@ -29,7 +29,7 @@ Controller::Controller() {
 }
 
 bool Controller::readSensors() {
-    TPS = constrain(getTPS(),MIN_TPS,MAX_TPS);
+    TPS = getTPS();
     ECT = getTemp(ECT_Pin);
     IAT = getTemp(IAT_Pin);
     MAP = getMAP();
@@ -48,11 +48,14 @@ void Controller::initializeParameters() {
 
     // Number of revolutions that must pass before recalculating RPM.
     revsPerCalc = 5;
+    constModifier = 1.2;
     
     // Initialize AFR values.
     AFR = 0;
     AFRVolts = new NoiseReduced(100);
     startupModifier = 1.0;
+    throttleAdjustment = 1.0;
+    lastThrottleMeasurementTime = micros();
 
     // Initialize MAP averaging
     MAPAvg = new NoiseReduced(100);
@@ -204,8 +207,10 @@ void Controller::lookupPulseTime() {
     {
         tempPulseTime *= startupModifier;
     }
+    throttleAdjustment = computeThrottleAdjustment();
+    tempPulseTime *= throttleAdjustment;
     noInterrupts();
-    injectorPulseTime = tempPulseTime;
+    injectorPulseTime = tempPulseTime * constModifier;
     interrupts();
 }
 

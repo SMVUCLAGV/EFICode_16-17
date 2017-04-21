@@ -37,6 +37,7 @@ public:
 
   // Performs 2D interpolation to lookup a pulse time for the given engine conditions.
   void lookupPulseTime();
+  double computeThrottleAdjustment();
 
   // If singleVal is true, determines the pulse time for the specified cell [row][col]
   // of the AFR Table in units of microseconds times kelvin.
@@ -111,12 +112,16 @@ private:
   long prevDeltaRPM;
 
   double startupModifier;
+  double throttleAdjustment;
+  unsigned long lastThrottleMeasurementTime;
 
   int magnetsHit;
+  double constModifier;
   
   long RPM;
   long desiredRPM;
   double TPS;
+  double DTPS;
   double ECT;
   double IAT;
   double MAP;
@@ -126,17 +131,17 @@ private:
 
   double fuelRatioTable[numTableRows][numTableCols] = 
     {
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7},
-    {10,11,13,13.5,13.5,14,14.7,14.7,14.7,14.7}
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},  // minimum pressure
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7},
+    {10,10,11,12,14.7,14.7,14.7,14.7,14.7,14.7}   // maximum pressure
     };
   long injectorBasePulseTimes[numTableRows][numTableCols];
 };
