@@ -36,6 +36,10 @@ void setup() {
   Timer3.attachInterrupt(dummy);
   Timer3.detachInterrupt();
   Timer3.attachInterrupt(handle_pulseTimerTimeout);
+
+  // FOR CHANGING PARAMETERS WITH BUTTON PRESSES
+  //attachInterrupt(digitalPinToInterrupt(2), lowerStartupMod, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(3), raiseStartupMod, FALLING);
   
   // Immediately stop the timer.
   Timer3.stop();
@@ -73,6 +77,16 @@ void countRev() {
 
 void handle_pulseTimerTimeout() {
   c->pulseOff();
+}
+
+void lowerStartupMod() {
+  c->lowerStartupModifier();
+  Serial.println("lower");
+}
+
+void raiseStartupMod() {
+  c->raiseStartupModifier();
+  Serial.println("raise");
 }
 
 void dummy() {}

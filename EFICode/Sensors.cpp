@@ -31,7 +31,7 @@ double Controller::getTPS() {
 double Controller::computeThrottleAdjustment() {
   // Looks at the change in throttle position and determines a proper adjusment for the fuel input.
   // DTPS
-  return 1 + TPS;
+  return 1 + TPS * TPS;
 }
 
 //Temperature Measurement

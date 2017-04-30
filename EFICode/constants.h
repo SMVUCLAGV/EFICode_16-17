@@ -7,6 +7,7 @@ void handle_pulseTimerTimeout();
 void enableINJ();
 void disableINJ();
 void dummy();
+void lowerStartupMod();
 
 // Define all the pin numbers
 const int HES_Pin = 19;

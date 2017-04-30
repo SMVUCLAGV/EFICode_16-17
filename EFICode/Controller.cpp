@@ -34,6 +34,7 @@ bool Controller::readSensors() {
     IAT = getTemp(IAT_Pin);
     MAP = getMAP();
     MAPAvg->addData(MAP);
+    setStartupModifier();
     return true;
 }
 
@@ -48,12 +49,12 @@ void Controller::initializeParameters() {
 
     // Number of revolutions that must pass before recalculating RPM.
     revsPerCalc = 5;
-    constModifier = 1.2;
+    constModifier = 1.10;
     
     // Initialize AFR values.
     AFR = 0;
     AFRVolts = new NoiseReduced(100);
-    startupModifier = 1.0;
+    startupModifier = 1.00;
     throttleAdjustment = 1.0;
     lastThrottleMeasurementTime = micros();
 
@@ -306,11 +307,27 @@ void Controller::checkEngineState() {
   }
 }
 
+const double startupModifierSlope = -0.0147;
+const double startupModifierInt = 5.5559;
+void Controller::setStartupModifier() {
+  startupModifier = startupModifierSlope * ECT * startupModifierInt;
+}
+
 bool Controller::detectEngineOff() {
   if (micros() - lastRPMCalcTime >= SHUTOFF_DELAY)
   {
     return true;
   }
   return false;
+}
+
+void Controller::lowerStartupModifier()
+{
+  startupModifier -= 0.05;
+}
+
+void Controller::raiseStartupModifier()
+{
+  startupModifier += 0.05;
 }
 
